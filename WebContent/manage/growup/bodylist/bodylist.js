@@ -1,0 +1,423 @@
+var rootPath = util.getRootPath();
+
+var classOptionData;
+
+$(function() {
+	//初始化查询日期，从当前日期开始
+	initQueDate();
+	//初始化班级
+	initClassData();
+	// 初始化Table 数据
+	tableUtil.initTable({
+		table : '#table',
+		toolbar : '#toolbar',
+		url : rootPath + "/bodylistServlet?optFlag=query",
+		uniqueId : 'ID', // 每一行的标识（要具有唯一性）
+		queryParams : queryParams, // 定义请求参数
+		columns : [
+			// field对应返回数据中的字段
+			{
+				checkbox : true
+			},
+			{
+				field : 'DATE',
+				title : '日期',
+				formatter : function(value, row, index) {
+					if(util.text.isEmpty(value)){
+						return '';
+					}
+					return value.substring(0,value.indexOf('T'));
+				}
+			},
+			{
+				field : 'NUMBER',
+				title : '体检编号',
+				formatter : function(value, row, index) {
+					if (value == null)
+						return "";
+					else
+						return value;
+				}
+			},
+			{
+				field : 'STUDENTNO',
+				title : '学号 '
+			},
+			{
+				field : 'STUDENTNAME',
+				title : '姓名',
+			},
+			{
+				field : 'SEX',
+				title : '性别',
+				formatter : function(value, row, index) {
+					if (value == 1)
+						return "男";
+					else
+						return "女";
+				}
+			},
+			{
+				field : 'HEIGHT',
+				title : '身高(cm)',
+				formatter : function(value, row, index) {
+					if (value == null)
+						return "";
+					else
+						return value;
+				}
+			},
+			{
+				field : 'WEIGHT',
+				title : '体重(kg)',
+				formatter : function(value, row, index) {
+					if (value == null)
+						return "";
+					else
+						return value;
+				}
+			},
+			{
+				field : 'HEADSIZE',
+				title : '头围(cm)',
+				formatter : function(value, row, index) {
+					if (value == null) {
+						return "";
+					} else {
+						return value;
+					}
+				}
+			},
+			{
+				field : 'BUSTSIZE',
+				title : '胸围(cm)',
+				formatter : function(value, row, index) {
+					if (value == null)
+						return "";
+					else
+						return value;
+				}
+			},
+			{
+				field : 'BODYSTATE',
+				title : '健康状况'
+			},
+			{
+				field : 'operate-role',
+				title : '操作',
+				align : 'center',
+				visible : false,
+				formatter : function(value, row, index) {
+					// 获取当前row内容
+					var id = row.ID;
+					// 编辑html拼接标签
+					var edit = '<a type="button" title="编辑" class="btn btn-primary shiny btn-xs purple edit-role"'
+						+ ' style="display: none;" data-toggle="modal" data-id="'
+						+ id
+						+ '" data-target="#addModal">'
+						+ '<i class="fa fa-edit"></i> 编辑</a>';
+					var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple delete-role"'
+						+ ' style="display: none;" data-toggle="modal" data-id="'
+						+ id
+						+ '" data-target="#delModal">'
+						+ '<i class="fa fa-trash-o"></i> 删除</a>';
+					return [ edit, del ].join(' ');
+				}
+			} ],
+			onLoadSuccess:function(data){
+				roleUtil.roleHandler();
+			}
+	});
+	
+	initModalDate();
+});
+
+//请求参数字段
+var searchParams = {};
+//table数据请求参数设置
+function queryParams(params) {//请求参数
+	params.startDate = searchParams.startDate;
+	params.endDate = searchParams.endDate;
+	params.cid = searchParams.classId;
+	params.stuNo = searchParams.stuNo;
+	params.stuName = searchParams.stuName;
+	return params;
+};
+//搜索数据
+function searchData() {
+	//搜索参数设置
+	searchParams.startDate = $('#queStartDate').val();
+	searchParams.endDate = $('#queEndDate').val();
+	searchParams.classId = $('#queClassID').val();
+	searchParams.stuNo = $('#queStuNo').val();
+	searchParams.stuName = $('#queStuName').val();
+	tableUtil.refreshData2Query('#table');
+};
+
+$('#addForm').bootstrapValidator({
+	fields : {
+		stuID : {
+			validators : {
+				notEmpty : {
+					message : '请选择学生'
+				}
+			}
+		},height : {
+			validators : {
+				notEmpty : {
+					message : '请填写身高'
+				},
+				integer: {message: '身高只能输入整数'},  
+			}
+		},headSize : {
+			validators : {
+				notEmpty : {
+					message : '请填写头围'
+				},
+				integer: {message: '头围只能输入整数'},  
+			}
+		},number : {
+			validators : {
+				notEmpty : {
+					message : '请填写体检编号'
+				},
+				regexp: {
+                    regexp: /^\d+$/,
+                    message: '体检编号只能由数字拼接'
+                }
+			}
+		},weight : {
+			validators : {
+				notEmpty : {
+					message : '请填写体重'
+				},
+				regexp: {
+                    regexp: /^\d+(\.\d{2})?$/,
+                    message: '体重只能输入数字，可保留2位小数'
+                }
+			}
+		},bustSize : {
+			validators : {
+				notEmpty : {
+					message : '请填写胸围'
+				},
+				integer: {message: '胸围只能输入整数'},  
+			}
+		}
+	},
+	excluded: [':disabled']
+});
+
+//新增/修改modal打开监听
+$('#addModal').on('show.bs.modal',function (e){
+	var btn = $(e.relatedTarget), // 触发该对话框的按钮
+		id = btn.data('id'),
+		btnSave = $('#addBtnSave');
+		btnSave.removeAttr('onclick');
+	$('#addForm')[0].reset();
+	var isAdd = util.text.isEmpty(id);
+	$(this).find('.modal-title').text(isAdd ? '新增保健信息':'编辑保健信息');// 设置medal标题
+	if(isAdd){
+		setClassData();
+	}else{
+		// 根据id获取该行的数据-->获取UniqueId标识的行数据
+		var row = tableUtil.getRowData('#table',id);
+		setClassData(row.CLASSESID,row.STUDENTID);
+		if(!util.text.isEmpty(row.DATE)){
+			var date = row.DATE.substring(0, row.DATE.indexOf('T'));
+			$('#addDate').val(date);
+		}
+		$('#addHeight').val(row.HEIGHT);
+		$('#addHeadSize').val(row.HEADSIZE);
+		$('#addBodyState').val(row.BODYSTATE);
+		$('#addNumber').val(row.NUMBER);
+		$('#addWeight').val(row.WEIGHT);
+		$('#addBustSize').val(row.BUSTSIZE);
+	}
+	btnSave.attr('onclick', 'saveData("' + id + '")');
+});
+
+$('#addModal').on("hidden.bs.modal", function() {
+	$('#addForm').bootstrapValidator('resetForm', true); // 重置验证
+});
+
+function saveData(id) {
+	var $form = $('#addForm');
+	var valid = $form.data('bootstrapValidator');
+	valid.validate();
+	if (valid.isValid()) {
+		var isAdd = util.text.isEmpty(id);
+		console.info($form.serialize());
+		$.post(rootPath + '/bodylistServlet?optFlag='+ (isAdd ? 'add':'edit'), $form.serialize()+"&id="+(isAdd ? "":id), function(data) {
+			if (data.result == 'ok') {
+				// 请求成功 提示且刷新数据
+				if(isAdd){
+					toastr.success('新增成功','提示');
+					// 请求成功（这里是添加数据成功）提示且刷新数据
+					tableUtil.refreshData2Add('#table');;// 刷新表格
+				}else{
+					toastr.success('修改成功','提示');
+					// 请求成功（这里是添加数据成功）提示且刷新数据
+					tableUtil.refreshData2Update('#table');;// 刷新表格
+				}
+			} else {
+				// 失败
+				if(isAdd){
+					toastr.error('新增失败！请稍后再试','提示');
+				}else{
+					toastr.error('修改失败！请稍后再试','提示');
+				}
+			}
+		}, 'json');
+		$('#addModal').modal('hide');
+	}
+};
+
+//删除对话框打开监听（也就是打开的时候会被掉用）
+$('#delModal').on('show.bs.modal', function(e) {
+	var btn = $(e.relatedTarget), // 触发该对话框的按钮
+		id = btn.data('id'), $this = $(this), btnDel = $('#delBtnOk');
+	btnDel.removeAttr('onclick');
+	if (id > 0) {
+		$this.find('p').html('&nbsp;确认删除该记录？');
+		btnDel.show();
+		btnDel.attr('onclick', 'delData("' + id + '")');
+	}
+});
+// 删除数据事件
+function delData(id) {
+	// post请求删除 第二种传参的例子
+	$.post(rootPath + '/bodylistServlet?optFlag=delete', {
+		'id' : id
+	}, function(data) {
+		if (data.result == 'ok') {
+			toastr.success('删除成功','提示');
+			// 请求成功（这里是删除数据成功）提示且刷新数据
+			tableUtil.refreshData2Delete('#table');
+		} else {
+			// 失败
+			toastr.error('删除失败！请稍后再试','提示');
+		}
+	}, 'json');
+};
+
+//addModal中需要的方法
+function setClassData(cid,stuid) {
+	var classID = $('#addClassID');
+	classID.empty();
+	if(classOptionData){
+		$.each(classOptionData,function(index,item){
+			var option;
+			if(cid==item.CLASSESID){
+				option = '<option value="'+item.CLASSESID+'" selected>'+item.CLASSESNAME+'</option>';
+			}else{
+				option = '<option value="'+item.CLASSESID+'">'+item.CLASSESNAME+'</option>';
+			}
+			//添加到选择标签中
+			classID.append(option);
+			if(util.text.isEmpty(stuid)){
+				if(index==0){
+					setStudentData(item.CLASSESID);
+				}
+			}else{
+				setStudentData(cid,stuid);
+			}
+		});
+	}
+};
+
+function changeClass() {
+	setStudentData($('#addClassID').val());
+};
+
+function setStudentData(cid,stuid){
+	var studentID = $('#addStuID');
+	studentID.empty();
+	$.get(rootPath+'/studentDataServlet',{cid:cid}, function(data) {
+		if ($.type(data) === 'array') {
+			$.each(data,function(index,item){
+				var option;
+				if(stuid==item.STUDENTID){
+					option = '<option value="'+item.STUDENTID+'" selected>'+item.STUDENTNAME+'</option>';
+				}else{
+					option = '<option value="'+item.STUDENTID+'">'+item.STUDENTNAME+'</option>';
+				}
+				//添加到选择标签中
+				studentID.append(option);
+			});
+		}
+	}, 'json');
+};
+//初始化方法
+function initClassData() {
+	var classID = $('#queClassID');
+	classID.empty();
+	classID.append('<option value="0">全部</option>');
+	$.get(rootPath+'/classDataServlet', function(data) {
+		if (data) {
+			classOptionData = data;
+			$.each(data,function(index,item){
+				var option = '<option value="'+item.CLASSESID+'">'+item.CLASSESNAME+'</option>';
+				//添加到选择标签中
+				classID.append(option);
+			});
+		}
+	}, 'json');
+};
+
+function initQueDate() {
+	//设置默认选中日期
+//	$('#queStartDate').val(util.dateFormat(new Date(),'yyyy-MM-dd'));
+//	$('#queEndDate').val(util.dateFormat(new Date(),'yyyy-MM-dd'));
+	//查询日期设置
+	$('#queStartDateGroup').datetimepicker({
+	    format: 'yyyy-mm-dd', //日期格式
+	    language: 'zh-CN', // 国际化 为中文
+	    minView: 2, // 精确到2--天
+	    todayBtn: true, //显示当天日期
+	    autoclose: true, //选择日期后自动关闭 
+	    initialDate: new Date(),//初始化当前日期
+	    startDate: "2013-01-01",//开始日期
+	    endDate:new Date(),
+	    pickerPosition: "bottom-left"//定位
+	}).on("changeDate",function(ev){//日期改变监听事件
+		//结束时间不能小于开始时间
+		$('#queEndDateGroup').datetimepicker("setStartDate",ev.date);
+	});
+	$('#queEndDateGroup').datetimepicker({
+	    format: 'yyyy-mm-dd', //日期格式
+	    language: 'zh-CN', // 国际化 为中文
+	    minView: 2, // 精确到2--天
+	    todayBtn: true, //显示当天日期
+	    autoclose: true, //选择日期后自动关闭 
+	    initialDate: new Date(),//初始化当前日期
+	    startDate: $('#queStartDate').val(),//开始日期
+	    endDate:new Date(),//结束日期
+	    pickerPosition: "bottom-left"//定位
+	}).on("changeDate",function(ev){//点击监听事件
+		//开始时间不能大于结束时间
+		$('#queStartDateGroup').datetimepicker("setEndDate",ev.date)
+	});
+//	searchParams.sdate = $('#queStartDate').val();
+//	searchParams.edate = $('#queEndDate').val();
+};
+
+function initModalDate() {
+	//查询条件：开始日期
+	$('#addDateGroup').datetimepicker({
+	    format: 'yyyy-mm-dd', //日期格式
+	    language: 'zh-CN', // 国际化 为中文
+	    minView: 2, // 精确到2天
+	    todayBtn: true, //显示当天日期
+	    autoclose: true, //选择日期后自动关闭 
+	    startDate: 2013-01-01,//开始日期
+	    endDate:new Date(),
+	    pickerPosition: "bottom-left"//定位
+	}).on('show', function(event) {//添加显示隐藏监听是为了防止调用modal中的显示隐藏监听
+		event.preventDefault();
+		event.stopPropagation();
+	}).on('hide', function(event) {
+		event.preventDefault();
+		event.stopPropagation();
+	});
+};

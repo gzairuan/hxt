@@ -1,0 +1,70 @@
+;
+var menuid = util.getQueryParam('menuid');
+var menuData;
+roleUtil = {
+	roleHandler : function() {
+		if (menuData && menuData !== undefined && menuData !== 'undefined') {
+			$.each(menuData, function(index, role) {
+				switch (role.ROLE) {
+				case 'VISIT':// 查看
+				{
+				}
+					break;
+				case 'INSERT'://添加
+				{
+					var add = $('.add-role');
+					console.log('添加:');
+					console.info(add);
+				}
+					break;
+				case 'UPDATE'://修改
+				{
+					var edit = $('.edit-role');
+					console.log('修改:');
+					console.info(edit);
+				}
+					break;
+				case 'DELETE'://删除
+				{
+					var del = $('.delete-role');
+					console.log('删除:');
+					console.info(del);
+				}
+					break;
+				case 'IMPORT'://导入
+				{
+					var imp = $('.import-role');
+					console.log('导入:');
+					console.info(imp);
+				}
+					break;
+				case 'EXPORT'://导出
+				{
+					var exp = $('.export-role');
+					console.log('导出:');
+					console.info(exp);
+				}
+					break;
+
+				default:
+					break;
+				}
+			});
+		}
+	}
+};
+if (!util.text.isEmpty(menuid)) {
+	var rootPath = util.getRootPath();
+	console.info('菜单ID:' + menuid);
+	$.ajax({
+		url : rootPath + '/menuRoleServlet',
+		data : {
+			menuid : menuid
+		},
+		dataType : 'json',
+		success : function(data) {
+			menuData = data;
+			roleUtil.roleHandler();
+		}
+	});
+}

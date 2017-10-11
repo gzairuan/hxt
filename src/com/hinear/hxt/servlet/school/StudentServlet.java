@@ -1,0 +1,170 @@
+package com.hinear.hxt.servlet.school;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.hinear.hxt.entity.StudentInfo;
+import com.hinear.hxt.entity.UserInfo;
+import com.hinear.hxt.util.EmptyUtils;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+import com.hinear.hxt.util.TransformUtils;
+
+/**
+ * Servlet implementation class StudentServlet
+ */
+@WebServlet("/studentServlet")
+public class StudentServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		if (session == null) {
+			return;
+		}
+		UserInfo user = (UserInfo) session.getAttribute("userInfo");
+		if (user == null) {
+			return;
+		}
+		String optFlag = request.getParameter("optFlag");
+		if (optFlag == null) {
+			System.out.println("请求标识为空");
+			return;
+		}
+		
+		Map<String, String> map;
+		String result = null , sid;
+		switch (optFlag) {
+		case "query": {// 查询
+			// 获取每页条数
+			int pageSize = TransformUtils.transformInt(request.getParameter("limit"));// 每页显示的条数
+			if (pageSize == 0) {
+				pageSize = 10;
+			}
+
+			// 获取当前页第一条数据的下标
+			int offset = TransformUtils.transformInt(request.getParameter("offset"));// 当前页第一条数据的下标（从0开始）
+			// 算出当前页码
+			int pageIndex = offset / pageSize;
+			map = new HashMap<>();// 接口请求参数
+			String stuNo = request.getParameter("stuNo");// 学号
+			String stuName = request.getParameter("stuName");// 学生姓名
+			String classId = request.getParameter("classId");// 选择的班级
+			map.put("PageSize", pageSize + "");
+			map.put("PageIndex", pageIndex + "");
+			map.put("SID", user.getSID() + "");
+			if (!EmptyUtils.stringIsEmpty(stuNo)) {
+				map.put("STUNO", stuNo);
+			}
+			if (!EmptyUtils.stringIsEmpty(stuName)) {
+				map.put("STUNAME", stuName);
+			}
+			if (!EmptyUtils.stringIsEmpty(classId)) {
+				map.put("CID", classId);
+			}
+			// 开始接口请求数据
+			String jsonData = HttpUtils.getInstance().get("B29", map);
+			// 返回数据
+			response.getWriter().print(jsonData);
+		}
+			break;
+		case "add":// 添加
+		{
+			//获取页面传过来的值
+			String stuClassId = request.getParameter("stuClassId");// 班级ID
+			String stuBidthday = request.getParameter("stuBidthday");// 生日
+			String entrySchoolDate = request.getParameter("entrySchoolDate");// 入校日期
+			String stuAddress = request.getParameter("stuAddress");// 地址
+			String stuName = request.getParameter("stuName");// 姓名
+			String stuSex = request.getParameter("stuSex");// 性别
+			String stuNo = request.getParameter("stuNo");// 学号
+			//创建学生实体 设置学生信息
+			StudentInfo stu = new StudentInfo(TransformUtils.transformInt(stuClassId), stuBidthday, stuName, stuSex, stuNo, entrySchoolDate, stuAddress);
+			//转换json
+			String stuJson = JSONUtil.toJSON(stu);
+			//接口参数添加
+			map = new HashMap<>();
+			map.put("JOB_STUDENT", stuJson);
+			//请求结果
+		     result = HttpUtils.getInstance().get("B31", map);
+			// 返回结果
+			response.getWriter().print(result);
+		}
+			break;
+		case "edit":// 编辑
+		{
+			String stuJson = request.getParameter("studentJson");
+			System.out.println(stuJson);
+			//接口参数添加
+			map = new HashMap<>();
+			map.put("JOB_STUDENT", stuJson);
+			//请求结果
+			result = HttpUtils.getInstance().get("B32", map);
+			// 返回结果
+			response.getWriter().print(result);
+		}
+			break;
+		case "delete":// 删除
+		{
+			String ids = request.getParameter("ids");
+			//接口参数添加
+			map = new HashMap<>();
+			map.put("IDS", ids);
+			//请求结果
+			result = HttpUtils.getInstance().get("B30", map);
+			// 返回结果
+			response.getWriter().print(result);
+		}
+			break;
+			
+		case "selectBatch":
+			String studenids = request.getParameter("studenids");
+			String classid = request.getParameter("classid");
+			sid = request.getParameter("sid");
+			map = new HashMap<String, String>();
+			map.put("SID", sid);
+			map.put("NEWCID", classid);
+			map.put("STUIDS", studenids);
+			result = HttpUtils.getInstance().post("C5", map);
+			response.getWriter().print(result);
+			break;
+		case "classBatch":
+			String oldcid = request.getParameter("oldcid");
+			String newcid = request.getParameter("newcid");
+			sid = request.getParameter("sid");
+			map = new HashMap<String, String>();
+			map.put("SID", sid);
+			map.put("OLDCID", oldcid);
+			map.put("NEWCID", newcid);
+			result = HttpUtils.getInstance().post("C5", map);
+			response.getWriter().print(result);
+			break;
+		default:
+			System.out.println(optFlag + " not is a request flag");
+			break;
+		}
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

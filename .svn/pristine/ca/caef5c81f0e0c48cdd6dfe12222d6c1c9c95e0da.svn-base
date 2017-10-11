@@ -1,0 +1,148 @@
+package com.hinear.hxt.servlet.sys.user;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.hinear.hxt.entity.UserInfo;
+import com.hinear.hxt.util.EmptyUtils;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+
+/**
+ * 用户管理初始化信息 Servlet implementation class UserInitServlet
+ * 
+ * @time 2017年6月23日16:07:38
+ * @author szs
+ */
+@WebServlet("/userInitServlet")
+public class UserInitServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		String optFlag = request.getParameter("optFlag");
+		System.out.println("optFlag===" + optFlag);
+		Map<String, String> map = new HashMap<String, String>();
+		String result = null;
+
+		if (optFlag == null) {
+			System.out.println("设置失败！");
+			return;
+		} else {
+			if (optFlag.equals("init")) {// 初始化Table操作
+				System.out.println("init(进入该方法)");
+				UserInfo user = (UserInfo) request.getSession().getAttribute("userInfo");
+				int pageSize = 10;
+				int pageIndex = 0;
+				String limit = request.getParameter("limit");
+				String offset = request.getParameter("offset");
+				// 查询条件
+				String utypeid = request.getParameter("utype");// 用户类型
+				String ustate = request.getParameter("ustate");// 状态
+				String uschool = user.getSID()==0?request.getParameter("uschool"):user.getSID()+"";// 学校
+				String cid = request.getParameter("cid");// 学校
+				String uname = request.getParameter("uname");// 用户名
+				String urname = request.getParameter("urname");// 电话
+
+				if (!EmptyUtils.stringIsEmpty(limit)) {
+					pageSize = Integer.parseInt(limit);
+				}
+				if (!EmptyUtils.stringIsEmpty(offset)) {
+					pageIndex = Integer.parseInt(offset) / pageSize;
+				}
+
+				if (!EmptyUtils.stringIsEmpty(utypeid) && utypeid.indexOf("0") == -1) {
+					map.put("USERTYPE", utypeid);
+				}
+				if (!EmptyUtils.stringIsEmpty(ustate) && ustate.indexOf("all") == -1) {
+					map.put("STATE", ustate);
+				}
+				if (!EmptyUtils.stringIsEmpty(uschool)&&uschool!="0") {
+					map.put("SID", uschool);
+				}
+				if (!EmptyUtils.stringIsEmpty(cid)) {
+					map.put("CID", cid);
+				}
+				if (!EmptyUtils.stringIsEmpty(uname)) {
+					map.put("USERNAME", uname);
+				}
+				if (!EmptyUtils.stringIsEmpty(urname)) {
+					map.put("REALNAME", urname);
+				}
+
+				map.put("PageIndex", pageIndex + "");
+				map.put("PageSize", pageSize + "");
+				map.put("UserID", user.getUSERID() + "");
+
+				result = HttpUtils.getInstance().get("B41", map);
+				System.out.println("后台json数据：" + result);
+				response.getWriter().print(result);
+
+			} else if (optFlag.equals("add")) { // 新增
+				String userJson = getUserInfo(request);
+				map.put("SYS_USER", userJson);
+				result = HttpUtils.getInstance().get("B43", map);
+				response.getWriter().print(result);
+
+			} else if (optFlag.equals("edit")) {// 修改
+				String userJosn = request.getParameter("userJson");
+				map.put("SYS_USER", userJosn);
+				result = HttpUtils.getInstance().get("B44", map);
+				response.getWriter().print(result);
+			} else {
+				String userId = request.getParameter("userId");
+				map.put("ID", userId);
+				result = HttpUtils.getInstance().get("B42", map);
+				response.getWriter().write(result);
+			}
+		}
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+	private String getUserInfo(HttpServletRequest request) {
+		String uType = request.getParameter("uTypeId"); // 用户类型ID
+		System.out.println("uType=" + uType);
+		String uSchoolId = request.getParameter("uSchoolId"); // 学校
+		String uName = request.getParameter("uname"); // 用户名
+		String uPassword = request.getParameter("upassword"); // 密码
+		// String uAffirPass = request.getParameter("uaffirmPass"); //确认密码
+		String uPhone = request.getParameter("uphone"); // 联系电话
+		String uSignature = request.getParameter("usignature"); // 签名
+		String uState = request.getParameter("uStateId"); // 是否启用
+		String uStudent = request.getParameter("ustudent"); // 选择学生,只用用户类型为家长才可以选择学生
+		String uRealName = request.getParameter("urealName"); // 真实姓名
+		String uEmail = request.getParameter("uemail"); // 邮箱
+		System.out.println("uEmail=" + uEmail);
+
+		UserInfo userInfo = new UserInfo();
+		userInfo.setUSERTYPEID(Integer.parseInt(uType));
+		userInfo.setSID(Integer.parseInt(uSchoolId));
+		userInfo.setUSERNAME(uName);
+		userInfo.setPASSWORD(uPassword);
+		userInfo.setMOBILE(uPhone);
+		userInfo.setSIGNATURE(uSignature);
+		userInfo.setSTATE(uState);
+		userInfo.setSTUDENTNAME(uStudent);
+		userInfo.setREALNAME(uRealName);
+		userInfo.setEMAIL(uEmail);
+
+		String userJson = JSONUtil.toJSON(userInfo); // 转成json
+		return userJson;
+	}
+
+}

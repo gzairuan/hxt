@@ -1,0 +1,95 @@
+package com.hinear.hxt.servlet.classes.album;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.hinear.hxt.entity.PhotoAblumInfo;
+import com.hinear.hxt.entity.UserInfo;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+import com.hinear.hxt.util.TransformUtils;
+
+/**
+ * 
+ * @author szs
+ * @time 2017年8月21日 上午10:05:06
+ * @version 1.0
+ * 描述：班级相册管理
+ */
+@WebServlet("/classAlbumServlet")
+public class ClassAlbumServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String optFlag = request.getParameter("optFlag");
+		String result = null;
+		int pageSize = 10000;
+		Map<String, String> map = new HashMap<String, String>();
+		HttpSession session = request.getSession();
+		UserInfo userInfo = null;
+		if(session != null){//session不为空
+			userInfo = (UserInfo) session.getAttribute("userInfo");
+			int userId = userInfo.getUSERID();
+			int sid = userInfo.getSID(); //登录者 学校ID
+			String cid = null; //班级ID
+			System.out.println(optFlag+"  "+cid);
+			switch(optFlag){
+				case "initAlbum":  //根据班级id初始化相册
+					cid = request.getParameter("cid"); //班级ID
+					map.put("PageSize", pageSize+"");
+					map.put("PageIndex", "0");
+					map.put("UserID", userId+"");
+					map.put("SID", sid+"");
+					map.put("CID", cid);
+					result = HttpUtils.getInstance().get("04", map);
+					break;
+				case "initPhoto": //初始化相册 照片
+					String albumId = request.getParameter("albumId");
+					map.put("PageIndex", "0");
+					map.put("PageSize", pageSize+"");
+					map.put("ALBUMID", albumId);
+					result = HttpUtils.getInstance().get("04I", map);
+					break;
+				case "creatAlbum": //创建相册
+					cid = request.getParameter("cid");
+					String desc = request.getParameter("desc");
+					
+					PhotoAblumInfo albumInfo = new PhotoAblumInfo();
+					albumInfo.setSID(sid);
+					albumInfo.setCREUSER(userId+""); //创建人
+					albumInfo.setALBUMDESC(desc);
+					albumInfo.setCLASSESID(Integer.valueOf(cid));
+					
+					String albumInfoJson = JSONUtil.toJSON(albumInfo);
+					map.put("Notices", albumInfoJson); 
+					result = HttpUtils.getInstance().get("04F", map);  //创建班级相册接口
+					System.out.println("result结果："+result);
+				case "editAlbum":
+					String albumid = request.getParameter("albumid");
+					String albumDesc = request.getParameter("albumDesc");
+					System.out.println(albumid + "====="+albumDesc);
+					map.put("ID", albumid);
+					map.put("ALBUMDESC", albumDesc);
+					result = HttpUtils.getInstance().get("04B", map);
+					
+				default: break;
+			}
+		}
+		System.out.println("result结果为："+result);
+		response.getWriter().print(result);;
+		
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

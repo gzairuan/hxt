@@ -1,0 +1,221 @@
+package com.hinear.hxt.servlet.growup;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+import com.google.gson.Gson;
+import com.hinear.hxt.entity.MediaInfo;
+import com.hinear.hxt.entity.News;
+import com.hinear.hxt.entity.UserInfo;
+import com.hinear.hxt.util.EmptyUtils;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+import com.hinear.hxt.util.TransformUtils;
+
+import sun.invoke.empty.Empty;
+
+/**
+ * 
+ * @author szs
+ * @time 2017年8月4日 上午9:56:03
+ * @version 1.0
+ * 描述：生活剪影 LifeSketchServlet
+ */
+@WebServlet("/lifeSketchServlet")
+public class LifeSketchServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		//操作标识
+		String optFlag = request.getParameter("optFlag");
+		String result = null; //接口返回结果=
+		HttpSession session = request.getSession();
+		UserInfo userInfo = null;
+		if(session != null){//判断session
+			userInfo = (UserInfo) session.getAttribute("userInfo");
+			if(userInfo != null){
+				String sid = String.valueOf(userInfo.getSID()); //学校ID
+				int userId = userInfo.getUSERID();//用户id
+				
+				Map<String, String> map = new HashMap<String, String>();
+				//操作
+				if("init".equals(optFlag)){//初始化
+					int limit = TransformUtils.transformInt(request.getParameter("limit")); //每页显示条数
+					int offset = TransformUtils.transformInt(request.getParameter("offset"));
+					System.out.println(limit + "<-->"+ offset);
+					if(limit == 0){
+						limit = 10;
+					}
+					int pageIndex = offset / limit; //请求记录开条数始的下标
+					String qrtCid = request.getParameter("classesId");
+					String startDate = request.getParameter("startDate");
+					String endDate = request.getParameter("endDate");
+					String stuname = request.getParameter("stuname");
+					
+					map.put("PageSize", limit + "");
+					map.put("PageIndex", pageIndex + "");
+					map.put("SID", sid);
+					if(!EmptyUtils.stringIsEmpty(qrtCid) && qrtCid != "0"){
+						map.put("CID", qrtCid);
+					}
+					if(!EmptyUtils.stringIsEmpty(startDate)){
+						map.put("SDATE", startDate);
+					}
+					if(!EmptyUtils.stringIsEmpty(endDate)){
+						map.put("EDATE", endDate);
+					}
+					if(!EmptyUtils.stringIsEmpty(stuname)){
+						map.put("STUDENTNAME", stuname);
+					}
+					
+					result = HttpUtils.getInstance().get("30", map);
+					
+				}else if("initStudent".equals(optFlag)){//初始化班级信息
+//					String userId = String.valueOf(userInfo.getUSERID());//用户id
+					map.put("USERID", userId+"");
+					result = HttpUtils.getInstance().get("45", map);
+					System.out.println("45result=="+result);
+				}else if("add".equals(optFlag)){//新增操作
+					String studentId = request.getParameter("studentId");//学生ID
+					String content = request.getParameter("content");//内容
+					String[] arr = request.getParameterValues("imgUrl"); //获取图片上传到服务器的url
+					
+					//登录者班级ID
+					String cid = request.getParameter("cid");
+					System.out.println("cid=="+cid);
+					News news = new News();
+					news.setNEWSTYPEID(3); //生活剪影类型为3
+					news.setSENDID(userId);
+					news.setCLASSESID(Integer.valueOf(cid));
+					news.setSTUDENTID(Integer.valueOf(studentId));
+					news.setCONTENT(content);
+					//保存图片URL到数据库
+					List<MediaInfo> list = new ArrayList<MediaInfo>();
+					for(int i = 0; i < arr.length; i++){
+						System.out.println("arr==="+ arr[i]);
+						MediaInfo mediaInfo = new MediaInfo();
+						mediaInfo.setATTACHMENTURL(arr[i]);
+						list.add(mediaInfo);
+					}
+					news.setData(list);
+					
+					String jsonNews= JSONUtil.toJSON(news);
+					map.put("JOBNEWS", jsonNews);
+					
+					result = HttpUtils.getInstance().get("30A", map);
+					//上传图片
+//					uploadFile(request);
+				}
+				else if("delete".equals(optFlag)){//删除
+					String newId = request.getParameter("newId");
+					System.out.println("newId="+newId);
+					if(newId != null){
+						map.put("ID", newId);
+						result = HttpUtils.getInstance().get("30B", map);
+					}
+				}
+			}
+		}
+		
+		response.getWriter().print(result);
+	}
+
+	//上传文件
+	private void uploadFile(HttpServletRequest request) {
+		
+		String basePath = this.getServletContext()
+				.getRealPath("/upload" + File.separator + "img" + File.separator + "schoolAlbum"); // 如：upload/img/南湾幼儿园学校/相册1
+		ArrayList<Object> list = new ArrayList<Object>();
+		String fullPath = null; // 文件全名
+		String fileName = null; // 单独文件名
+		String filePath = null;
+		final String allowFileSuffix = "jpg,png,jpeg";
+
+		File serviceDir = new File(basePath);
+		if (!serviceDir.exists()) {// 判断目录是否存在
+			serviceDir.mkdirs();
+		}
+		// 检查输入请求是否为multipart表单数据。
+		if (ServletFileUpload.isMultipartContent(request)) {
+			DiskFileItemFactory dff = new DiskFileItemFactory();// 创建该对象
+			dff.setRepository(serviceDir);// 指定上传文件的临时目录
+			dff.setSizeThreshold(1024000);// 指定在内存中缓存数据大小,单位为byte
+			ServletFileUpload sfu = new ServletFileUpload(dff);// 创建该对象
+			sfu.setFileSizeMax(10000000);// 指定单个上传文件的最大尺寸
+			// sfu.setSizeMax(10000000);// 指定一次上传多个文件的总尺寸
+			sfu.setHeaderEncoding("utf-8");
+
+			List<FileItem> fileItems = new ArrayList<FileItem>();
+
+			try {
+				fileItems = sfu.parseRequest(request); // 获取上传文件
+			} catch (FileUploadException e1) {
+				System.out.println("文件上传发生错误" + e1.getMessage());
+			}
+			System.out.println("fileItems内容==》" + fileItems);
+			System.out.println("fileItems大小：" + fileItems.size());
+
+			for (FileItem fileItem : fileItems) { // 遍历上传文件
+
+				// 判断该表单项是否是普通文本类型
+				if (fileItem.isFormField()) {
+					System.out.println("进入if语句");
+					String name = fileItem.getFieldName();// 控件名
+					String value = fileItem.getString();
+					fileName = name.substring(name.lastIndexOf(File.separator) + 1);
+					System.out.println("fileName000==" + fileName);
+				} else {
+					System.out.println("进入else语句");
+					filePath = fileItem.getName(); //
+					System.out.println("上传照片名称：" + filePath);
+
+					if (filePath == null || filePath.trim().length() == 0)
+						continue;
+
+					fileName = filePath.substring(filePath.lastIndexOf(File.separator) + 1); // 获取文件名
+					System.out.println("fileName@@@=" + fileName);
+					String extName = filePath.substring(filePath.lastIndexOf(".") + 1);
+					fullPath = basePath + File.separator + fileName; // 文件全名
+					System.out.println("照片全名：" + fullPath);
+
+					if (allowFileSuffix.indexOf(extName) != -1) {// 读取文件
+						try {
+							fileItem.write(new File(fullPath)); // 写入流
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+
+					} else {
+						try {
+							throw new FileUploadException("文件格式不正确");
+						} catch (FileUploadException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		}
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

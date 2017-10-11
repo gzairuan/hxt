@@ -1,0 +1,74 @@
+package com.hinear.hxt.servlet.school;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.GZIPInputStream;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.hinear.hxt.util.HttpUtils;
+
+@WebServlet(description = "学校通知", urlPatterns = { "/schoolNoticeServlet" })
+public class SchoolNoticeServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+		int limit = 10;
+		int offset = 0;
+		String typeId = "3";
+		String sId = "1";
+		String jsonData = null;
+
+		Map<String, String[]> params = request.getParameterMap();
+		for (String elements : params.keySet()) {
+			String[] attr = params.get(elements);
+			if (elements.equals("limit")) // 分页参数
+				limit = Integer.parseInt(attr[0]);
+			if (elements.equals("offset"))
+				offset = Integer.parseInt(attr[0]);
+
+			if (elements.equals("TYPEID")) // 通知类型
+				typeId = attr[0];
+
+			if (elements.equals("SID"))
+				sId = attr[0];
+			System.out.println("typeId=" + typeId + " sId=" + sId);
+
+		}
+
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("PageIndex", offset / limit + "");
+		map.put("PageSize", limit + "");
+		// map.put("SID", "2");
+		map.put("SID", sId);
+		map.put("TYPEID", typeId);
+		jsonData = HttpUtils.getInstance().get("06", map); // loadJson("http://www.hinear.com:81/HXTAPPPWebs.ashx?ServerType=06&draw="+
+															// draw
+															// +"&SOURCETYPE=1&PageSize="+
+															// length +
+		response.setContentType("text/html;charset=utf-8");
+		response.setCharacterEncoding("utf-8");
+		response.getWriter().print(jsonData);
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

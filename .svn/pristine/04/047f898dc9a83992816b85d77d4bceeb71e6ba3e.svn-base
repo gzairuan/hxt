@@ -1,0 +1,56 @@
+package com.hinear.hxt.servlet.classes;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.hinear.hxt.util.HttpUtils;
+
+/**
+ * ClassesNoticeInitServlet 班级通知servlet
+ * @time 2017-6-16
+ * @author szs
+ */
+@WebServlet("/classesNoticeInitServlet")
+public class ClassesNoticeInitServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+		String jsonData = null;
+		int limit = 10;
+		int offset = 0;
+		String typeId = "3"; //通知类型（班级通知）
+		Map<String, String[]> params = request.getParameterMap();
+		
+		for(String elements : params.keySet()){
+			String[] attr = params.get(elements);
+			if(elements.equals("limit"))
+				limit = Integer.parseInt(attr[0]);
+			if(elements.equals("offset"))
+				offset = Integer.parseInt(attr[0]);
+		}
+		Map<String, String> map = new HashMap();
+		map.put("PageIndex", offset/limit+"");
+		map.put("PageSize", limit+"");
+		map.put("TYPEID", typeId);
+		//获取班级通知json
+		jsonData = HttpUtils.getInstance().get("06", map);
+		
+		response.setContentType("text/html;charset=utf-8");
+		response.setCharacterEncoding("utf-8");
+		response.getWriter().print(jsonData);
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

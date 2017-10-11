@@ -1,0 +1,132 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getContextPath();
+%>    
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>学校简介</title>
+<link rel="shortcut icon" href="<%=basePath%>/icons/favicon.ico"> 
+<link href="<%=basePath%>/css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="<%=basePath%>/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="<%=basePath%>/css/animate.css" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/editor/summernote.css" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/editor/summernote-bs3.css" rel="stylesheet">
+<link href="<%=basePath%>/css/style.css?v=4.1.0" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+</head>
+
+<body class="gray-bg">
+	<div class="wrapper wrapper-content fadeInRight">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>学校简介</h5>
+                        <div class="ibox-tools">
+                            <button id="btn-edit" type="button" class="btn btn-xs btn-primary edit-role" style="display: none;" onclick="schoolInfoEdit()">
+                                <i class="fa fa-edit"></i><span>编辑</span>
+                            </button>
+                            <button id="btn-post" type="button" class="btn btn-xs btn-primary" style="display: none;" onclick="save()">
+                                <i class="fa fa-arrow-up"></i><span>保存</span>
+                            </button>
+                            <button id="btn-cancel" type="button" class="btn btn-xs btn-primary" style="display: none;" onclick="cancel()">
+                                <i class="fa fa-close"></i><span>取消</span>
+                            </button>
+                            <!-- <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a> -->
+                        </div>
+                    </div>
+                    <div class="ibox-content" id="contentId">
+						<div id="summernoteId">
+							
+						</div>
+					</div>
+                </div>
+            </div>
+        </div>
+	</div><!-- end wrapper -->
+	
+	<!-- 编辑modal 暂时不用modal来做-->
+	<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-lablledby="editModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document" style="width:70%; heigth:520">
+            <!-- 会话窗口 -->
+            <div class="modal-content">
+                <!-- 模态框内容 -->
+                <div class="modal-header">
+                    <!-- 模态框头 -->
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <!-- 右上角关闭按钮“x” -->
+                    <h5 class="modal-title" id="editModalTitle">编辑学校简介</h5>
+                </div>
+                <div class="modal-body">
+                	<div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>富文本编辑器</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="form_editors.html#">
+                                <i class="fa fa-wrench"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-user">
+                                <li><a href="form_editors.html#">选项1</a>
+                                </li>
+                                <li><a href="form_editors.html#">选项2</a>
+                                </li>
+                            </ul>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content no-padding">
+
+                        <div class="summernote">
+                       
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+				</div>
+                <div class="modal-footer">
+                    <button id="btnEdit" type="button" class="btn btn-primary">提交</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+	</div>
+	
+	
+
+<!-- 全局js -->
+<script src="<%=basePath%>/js/jquery-3.2.1.min.js?v=3.2.1"></script>
+<script src="<%=basePath%>/js/bootstrap.min.js?v=3.3.7"></script>
+<!-- 兼容ie9及以下 -->
+<script src="<%=basePath%>/js/json2.js"></script>
+<!-- 自定义js -->
+<script src="<%=basePath%>/js/content.js?v=1.0.0"></script>
+<!-- SUMMERNOTE -->
+<script src="<%=basePath%>/js/plugins/editor/summernote.min.js"></script>
+<script src="<%=basePath%>/js/plugins/editor/summernote-zh-CN.js"></script>
+<script src="<%=basePath%>/js/plugins/toastr/toastr.min.js"></script>
+	
+<script src="<%=basePath%>/js/common/util.js"></script>
+<script src="schoolInfo.js"></script>
+<script src="<%=basePath%>/js/common/role-handler.js"></script>
+
+</body>
+</html>

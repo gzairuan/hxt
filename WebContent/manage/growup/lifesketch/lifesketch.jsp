@@ -1,0 +1,289 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getContextPath();
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>生活剪影</title>
+<link rel="shortcut icon" href="../icons/favicon.ico"> 
+<link href="<%=basePath%>/css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="<%=basePath%>/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="<%=basePath%>/css/animate.css" rel="stylesheet">
+<link href="<%=basePath%>/css/style.css?v=4.1.0" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/bootstraptable/bootstrap-table.css" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet"><!-- 日期控件 -->
+<link href="<%=basePath%>/css/plugins/upload/fileinput.css" rel="stylesheet">
+
+<style type="text/css">
+.s_font {
+    font-size: 14px;
+    border: none;
+    background: none;
+    font-family: "微软雅黑","Microsoft Yahei",Arial,Helvetica,sans-serif,"宋体";
+}
+
+.split_cell {
+	width:auto;
+	height: 80%;
+	float:left;
+	border-right:dotted #CCCCCC 2px;
+	padding: 2px;
+} 
+
+</style>
+</head>
+
+<body class="gray-bg">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h3>生活剪影</h3>
+			</div>
+			<div class="ibox-content"> <!-- ibox 主体内容 -->
+				<form id="formSearch" class="form-horizontal">
+					<div class="form-group has-feedback">
+						<label class="control-label col-sm-2" for="qry_startDate">开始时间：</label>
+						<div class="col-sm-2">
+							<input id="qry_startDate" name='qry_startDate' class="form-control" >
+						</div>
+						<label class="control-label col-sm-2" for="qry_endtDate">结束时间：</label>
+						<div class="col-sm-2">
+							<input id="qry_endtDate" name='qry_endtDate' class="form-control" >
+						</div>
+					</div>
+					
+					<div class="form-group has-feedback">
+						<label class="control-label col-sm-2" for="qry_cid">班级：</label>
+						<div class="col-sm-2">
+							<select id="qry_cid" name='qry_cid' class="form-control" style="font-size: 12px; width: 100%;">
+								<option value="0">全部</option>
+							</select>
+						</div>
+						
+						<label class="control-label col-sm-2" for="stuname">学生名称：</label>
+						<div class="col-sm-2">
+							<input id="stuname" name='stuname' class="form-control">
+						</div>
+						
+						<div class="col-sm-2" style="text-align: left;">
+							<button type="button" style="margin-left: 90px" id="btn_query"
+								class="btn btn-primary" onclick="searchData()">查询</button>
+						</div>
+					</div>
+				</form>
+				<!-- table 内容主体 -->
+				<div class="row row-lg">
+	                    <div class="col-sm-12">
+	                        <!-- Example Card View -->
+	                        <div class="example-wrap">
+	                            <div class="example">
+									<div id="toolbar">
+										<button id="btn-add" type="button" class="btn btn-sm btn-primary add-role" style="display: none;" data-falg="add" data-toggle="modal" data-target="#addModal" data-flag="add">
+											<span class="fa fa-plus" aria-hidden="true"></span> 新增
+										</button>
+									</div>
+									
+									<!-- 表格内容 -->
+	                                <table id="lifesketchTabelId" class="table table-condensed">
+	                                </table>
+	                            </div>
+	                        </div>
+	                        <!-- End Example Card View -->
+	                    </div>
+	              </div><!-- end row -->
+			</div>
+		</div><!-- end ibox -->
+	</div><!-- end wrapper -->
+	
+	<!-- table 新增 modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog"
+        aria-lablledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document" style="width: 50%; margin: 5% auto;">
+            <!-- 会话窗口 -->
+            <div class="modal-content">
+                <!-- 模态框内容 -->
+                <div class="modal-header">
+                    <!-- 模态框头 -->
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <!-- 右上角关闭按钮“x” -->
+                    <h4 class="modal-title" id="addModalTitle">学生生活剪影</h4>
+                </div>
+                <div class="modal-body" style="overflow-y: scroll;">
+                    <!-- 模态框主题内容  -->
+					<form id="addmodalForm" class="form-horizontal">
+ 						<div class="form-group form-inline "> 
+							<select id="studentId" name="studentId" class="form-control col-md-3" required>
+								<option>请选择学生</option>
+							</select>
+						</div>
+							
+						<div class="form-group">
+							<textarea rows="10" id="content" name="content" class="form-control notice-content" placeholder="内容"></textarea>
+						</div>
+						<div class="form-group uploadImgDiv">
+                            <!-- <i class="fa fa-image"></i> -->
+							<img alt="图片上传" src="<%=basePath%>/img/uploadImg.png" style="width:20px;height:20px;">
+							<input type="button" id="upLifeSketchImg" value="上传图片" class="s_font" ></input> 
+						</div>
+						<div class="form-group" id="selectImgDiv" >
+							<input id="selectImgId" class="file" type="file" data-preview-file-type="text" multiple>
+						</div>
+					</form>
+				</div>
+                <div class="modal-footer">
+                    <button id="btnSave" type="button" class="btn btn-primary">发布</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 查看详情 -->
+    <div class="modal fade" id="detailModal" tabindex="-1" role="dialog"
+        aria-lablledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document" style="width: 50%; margin: 5% auto; height: 800px;">
+            <!-- 会话窗口 -->
+            <div class="modal-content">
+                <!-- 模态框内容 -->
+                <div class="modal-header">
+                    <!-- 模态框头 -->
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <!-- 右上角关闭按钮“x” -->
+                    <h4 class="modal-title" id="detailModalTitle">查看详情</h4>
+                </div>
+                <div class="modal-body" style="overflow-y: scroll; height: 500px;">
+                    <!-- 模态框主题内容  -->
+					<form id="detailmodalForm" class="form-horizontal">
+						<div class="col-md-6">
+							<div class="form-group "> 
+	 							<label class="control-label col-md-4">学生姓名：</label>
+	 							<div class="col-md-6">
+	 								<input id="d_stuname" class="form-control" type="text" readonly>
+	 							</div>
+							</div>
+						</div>
+ 						<div class="col-md-6">
+							<div class="form-group "> 
+								<label class="control-label col-md-4">班级名称：</label>
+								<div class="col-md-6">
+									<input id="d_clasname" class="form-control" type="text" readonly>
+								</div>
+							</div>
+						</div>
+						
+						<div class="col-md-11">
+							<label class="control-label col-md-2">内容：</label>
+							<div class="col-md-10">
+								<textarea rows="10" id="d_content" name="d_content" class="form-control notice-content" readonly></textarea>
+							</div>
+						</div>
+						
+						
+						 <!-- <div class="col-sm-8 form-group">
+							<label class="control-label">图片浏览：</label>
+							预览生活剪影
+							<div class="carousel slide" id="carousel2" style="left: 35%;">
+	                            <ol class="carousel-indicators">
+	                                <li data-slide-to="0" data-target="#carousel2" class="active"></li>
+	                                <li data-slide-to="1" data-target="#carousel2"></li>
+	                                <li data-slide-to="2" data-target="#carousel2" class=""></li>
+	                            </ol>
+	                            <div class="carousel-inner" >
+	                                <div class="item active" align="center">
+	                                	<a href="http://www.hinear.com:81//Upload/Notice/Classes30A7192073142480301.jpg" target="_blank">
+		                                    <img alt="image" class="img-responsive" style="width: auto;height: 200px;" src="http://www.hinear.com:81//Upload/Notice/Classes30A7192073142480301.jpg">
+	                                	</a>
+	                                    <div class="carousel-caption">
+	                                        <p>This is simple caption 1</p>
+	                                    </div>
+	                                </div>
+	                                <div class="item" align="center">
+	                                	<a href="http://www.hinear.com:81//Upload/Notice/Classes30A396972877962300.jpg" target="_blank">
+		                                    <img alt="image" class="img-responsive" style="width: auto;height: 200px;"   src="http://www.hinear.com:81//Upload/Notice/Classes30A396972877962300.jpg">
+	                                	</a>
+	                                    <div class="carousel-caption">
+	                                        <p>This is simple caption 2</p>
+	                                    </div>
+	                                </div>
+	                                <div class="item" align="center">
+	                                	<a href="http://www.hinear.com:81//Upload/Notice/Classes30A941780245980300.png" target="_blank">
+		                                    <img alt="image" class="img-responsive" style="width: auto;height: 200px;"  src="http://www.hinear.com:81//Upload/Notice/Classes30A941780245980300.png">
+	                                	</a>
+	                                    <div class="carousel-caption">
+	                                        <p>This is simple caption 3</p>
+	                                    </div>
+	                                </div>
+	                            </div>
+	                            <a data-slide="prev" href="carousel.html#carousel2" class="left carousel-control">
+	                                <span class="icon-prev"></span>
+	                            </a>
+	                            <a data-slide="next" href="carousel.html#carousel2" class="right carousel-control">
+	                                <span class="icon-next"></span>
+	                            </a>
+	                        </div>
+						</div>  -->
+						
+					</form>
+                        
+				</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	<!-- table 删除modal -->
+    <div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+        aria-labelledby="delModalLabel" data-backdrop="true"
+        aria-hidden="true">
+        <div class="modal-dialog" style="width: 20%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <h5 class="modal-title" id="delModalLabel" style="color: red">删除
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+                </div>
+                <div class="modal-footer">
+                   <!--  <span id='deleteButton'></span> -->
+                    <button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal">确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div><!-- end deleteModal -->
+
+<!-- 全局js -->
+<script src="<%=basePath%>/js/jquery-3.2.1.min.js?v=3.2.1"></script>
+<script src="<%=basePath%>/js/bootstrap.min.js?v=3.3.7"></script>
+<!-- 兼容ie9及以下 -->
+<script src="<%=basePath%>/js/json2.js"></script>
+<script src="<%=basePath%>/js/plugins/bootstraptable/bootstrap-table.js"></script>
+<script src="<%=basePath%>/js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+<script src="<%=basePath%>/js/plugins/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+<script src="<%=basePath%>/js/plugins/datetimepicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+<!-- 文件上传  -->
+<script src="<%=basePath%>/js/plugins/upload/fileinput.js"></script>
+<script src="<%=basePath%>/js/plugins/upload/LANG.js"></script>
+<script src="<%=basePath%>/js/plugins/upload/zh.js"></script>
+
+<script src="<%=basePath%>/js/common/util.js"></script>
+<script src="<%=basePath%>/js/common/util-table.js"></script>
+<script src="lifesketch.js"></script>
+<script src="<%=basePath%>/js/common/role-handler.js"></script>
+
+
+</body>
+</html>

@@ -1,0 +1,294 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+	name="viewport">
+<title>入校离校</title>
+<link rel="shortcut icon" href="../../icons/favicon.ico">
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+<!-- 表格 -->
+<link href="../../css/plugins/bootstraptable/bootstrap-table.min.css" rel="stylesheet">
+<!-- 下拉多选 -->
+<link href="../../css/plugins/multiple-select/bootstrap-multiselect.css" rel="stylesheet">
+<!-- 日期选择 -->
+<link href="../../css/plugins/datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
+<!-- 窗口 -->
+<link href="../../css/plugins/hxt/box.css" rel="stylesheet">
+<style type="text/css">
+	select.form-control {
+		font-size: 12px;
+	}
+</style>
+</head>
+<body class="gray-bg">
+	<!-- 包装内容 动画 从右方进入 -->
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- 面板 -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h5>入校离校</h5>
+			</div>
+			<div class="ibox-content">
+				<form class="form-horizontal" role="form" id="queryForm">
+					<div class="box-body" style="padding: 0px;">
+						<div class="col-md-3">
+							<div class="form-group has-feedback">
+								<label class="col-md-5 control-label" for="queStartDate">开始日期：</label>
+								<div class="col-md-7">
+									<input type="text" id="queStartDate" class="form-control"/>
+								</div>
+							</div>
+							<div class="form-group has-feedback">
+								<label class="col-md-5 control-label" for="queEndDate">结束日期：</label>
+								<div class="col-md-7">
+									<input type="text" id="queEndDate" class="form-control"/>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group has-feedback">
+								<label class="col-md-4 control-label" for="queStuNo">学号：</label>
+								<div class="col-md-7">
+									<input type="text" id="queStuNo" class="form-control"/>
+								</div>
+							</div>
+							<div class="form-group has-feedback">
+								<label class="col-md-4 control-label" for="queStuName">姓名：</label>
+								<div class="col-md-7">
+									<input type="text" id="queStuName" class="form-control"/>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group has-feedback">
+								<label class="col-md-4 control-label" for="queClassSelcet">班级：</label>
+								<div class="col-md-7">
+									<select id="queClassSelcet" class="form-control">
+										<option value="">班级</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group has-feedback">
+								<label class="col-md-4 control-label" for="queClockStatus">状态：</label>
+								<div class="col-md-7">
+									<select id="queClockStatus" class="form-control">
+										<option value="">全部</option>
+										<option value="1">入校</option>
+										<option value="2">离校</option>
+										<option value="3">上车</option>
+										<option value="4">下车</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group">
+								<div class="col-md-4">
+									<a id="btnSearch" type="button" class="btn btn-sm btn-primary"
+										onclick="searchData()">搜索</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+				<!-- 表格列表主窗体 -->
+				<!-- 表格内容 -->
+				<table id="tableClock">
+				</table>
+			</div>
+		</div>
+		<!-- 面板 END -->
+	</div>
+	<!--放大图的bigImgModal-->
+	<div class="modal fade bs-example-modal-lg text-center" id="bigImgModal"
+		tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
+		data-backdrop="true" aria-hidden="true">
+		<div class="modal-dialog modal-lg" style="display: inline-block; width: auto;">
+			<div class="modal-content">
+				<img src=""/>
+			</div>
+		</div>
+	</div>
+
+	<!--Modal ends here--->
+	<!-- 全局js -->
+	<script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+	<script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+	<!-- 兼容ie9及以下json -->
+	<script src="../../js/json2.js"></script>
+	<!-- 表格js -->
+	<script src="../../js/plugins/bootstraptable/bootstrap-table.min.js"></script>
+	<script src="../../js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+	<!-- 下拉多选 -->
+	<script src="../../js/plugins/multiple-select/bootstrap-multiselect.js"></script>
+	<!-- 日期选择 -->
+	<script src="../../js/plugins/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+	<script src="../../js/plugins/datetimepicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+	<script type="text/javascript">
+		//表格
+		var table = $('#tableClock');
+
+		//班级数据
+		var classOptionData;
+
+		$(function() {
+			//获取选择班级数据 添加到选择标签中
+			classOptionDataInit();
+
+			//表格初始化
+			tableInit();
+			
+		});
+		//日期控件初始化 (在modal中显示和隐藏的时候会同时调用modal的显示和隐藏事件)
+		$('#queStartDate').datetimepicker({
+			language:  'zh-CN',//语言（需依赖语言包）
+		    format: 'yyyy-mm-dd',//格式
+		    minView:2,//最小精确到天
+		    todayBtn:true,//显示选择当天的按钮
+		    autoclose:true//自动关闭-当选择一个日期之后立即关闭
+		});
+		$('#queEndDate').datetimepicker({
+			language:  'zh-CN',//语言（需依赖语言包）
+		    format: 'yyyy-mm-dd',//格式
+		    minView:2,//最小精确到天
+		    todayBtn:true,//显示选择当天的按钮
+		    autoclose:true//自动关闭-当选择一个日期之后立即关闭
+		})
+		//班级选项数据初始化
+		function classOptionDataInit() {
+			//请求班级数据（通过接口获取数据）
+			$.post('../../queryClassServlet', function(data) {
+				if (data) {
+					classOptionData = data;
+					//添加到选择标签中
+					addClassSelectItem($('#queClassSelcet'), '全部');
+				}
+			}, 'json');
+		}
+		/**
+		 * e （select标签元素）
+		 * optionHint 提示
+		 */
+		function addClassSelectItem(e, optionHint) {
+			if (e && classOptionData) {
+				if (classOptionData != null && e[0] != null && e[0].length == 1) {
+					//清空所有的option
+					e.empty();
+					e.append('<option value="0">' + optionHint + '</option>');
+					$.each(classOptionData, function(index, obj) {
+						e.append('<option value="'+obj.CLASSESID+'">' + obj.CLASSESNAME + '</option>');
+					});
+				}
+			}
+		}
+		//表格的初始化
+		function tableInit() {
+			table.bootstrapTable({
+						url : '../../clockListServlet',//远程请求地址
+						method : 'post',//请求方式
+						dataType : 'json',//接收数据类型
+						contentType : "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+						striped : true, //是否显示行间隔色
+						toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+						cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+						sortable : false, //是否启用排序
+						pagination : true, //是否显示分页（*）
+						pageNumber : 1, //初始化加载第一页，默认第一页
+						pageSize : 10, //每页的记录行数（*）
+						pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+						sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+						clickToSelect : true, //是否启用点击选中行
+						uniqueId : 'RECORDID', //每一行的标识（要具有唯一性）
+						queryParams : queryParams,//请求参数
+						columns : [
+								//field对应返回数据中的字段
+								{
+									field : 'STUDENTNAME',
+									title : '学生'
+								},
+								{
+									field : 'STUDENTNO',
+									title : '学号'
+								},
+								{
+									field : 'CLASSESNAME',
+									title : '班级'
+								},
+								{
+									field : 'TIME',
+									title : '时间',
+									formatter : function(value, row, index) {
+										if(value == undefined || value == null || value == ''){
+											return value;
+										}
+										var time = value.replace('T',' ');
+										return time;
+									}
+								},
+								{
+									field : 'TYPE',
+									title : '状态'
+								},
+								{									
+									field : 'PHOTO',
+									title : '图片',
+									align : 'center',
+									valign : 'center',
+									formatter : function(value, row, index) {
+										var img = '<img onerror="this.src=\'../../img/bg.png\'"'
+											+' src="'+value+'" width="30px" height="30px" onclick="lookBigImage(\''+value+'\')"/>';
+												//添加拼接标签以join中的字符串分隔开来
+										return img;
+									},
+								} ],
+						onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+							$(".info").removeClass("info");
+							$(ele).addClass("info");
+						}
+					});
+		};
+		//请求参数字段
+		var searchParams = {};
+		//table数据请求参数设置
+		function queryParams(params) {//请求参数
+			params.startDate = searchParams.startDate;
+			params.endDate = searchParams.endDate;
+			params.classId = searchParams.classId;
+			params.stuNo = searchParams.stuNo;
+			params.stuName = searchParams.stuName;
+			params.status = searchParams.status;
+			return params;
+		};
+		//搜索数据
+		function searchData() {
+			//搜索参数设置
+			searchParams.startDate = $('#queStartDate').val();
+			searchParams.endDate = $('#queEndDate').val();
+			searchParams.classId = $('#queClassSelcet').val();
+			searchParams.stuNo = $('#queStuNo').val();
+			searchParams.stuName = $('#queStuName').val();
+			searchParams.status = $('#queClockStatus').val();
+			//销毁表格 以达到真正的清除当前表格所加载的数据
+			table.bootstrapTable('destroy');
+			//重新创建表格 用于重新加载数据
+			tableInit();
+		};
+		//看大图
+		function lookBigImage(imgUrl) {
+			console.info(imgUrl);
+			var modal = $('#bigImgModal');
+			modal.modal('show');
+			modal.find('img').attr('src',imgUrl);
+		}
+	</script>
+</body>
+</html>

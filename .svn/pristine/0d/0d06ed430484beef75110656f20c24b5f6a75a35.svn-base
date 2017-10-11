@@ -1,0 +1,513 @@
+var rootPath = util.getRootPath();
+
+//班级数据
+var classOptionData;
+
+$(function() {
+	//获取选择班级数据 添加到选择标签中
+	classOptionDataInit();
+
+	//表格初始化
+	tableInit();
+	
+});
+//日期控件初始化 (在modal中显示和隐藏的时候会同时调用modal的显示和隐藏事件)
+$('#stuBirthday').datetimepicker({
+	language:  'zh-CN',//语言（需依赖语言包）
+    format: 'yyyy-mm-dd',//格式
+    minView:2,//最小精确到天
+    todayBtn:true,//显示选择当天的按钮
+    autoclose:true//自动关闭-当选择一个日期之后立即关闭
+}).on('show', function(event) {//添加显示隐藏监听是为了防止调用modal中的显示隐藏监听
+	event.preventDefault();
+	event.stopPropagation();
+}).on('hide', function(event) {
+	event.preventDefault();
+	event.stopPropagation();
+});
+$('#stuEntrySchoolDate').datetimepicker({
+	language:  'zh-CN',//语言（需依赖语言包）
+    format: 'yyyy-mm-dd',//格式
+    minView:2,//最小精确到天
+    todayBtn:true,//显示选择当天的按钮
+    autoclose:true//自动关闭-当选择一个日期之后立即关闭
+}).on('show', function(event) {//添加显示隐藏监听是为了防止调用modal中的显示隐藏监听
+	event.preventDefault();
+	event.stopPropagation();
+}).on('hide', function(event) {
+	$('#stuForm').data('bootstrapValidator').updateStatus('entrySchoolDate', 'NOT_VALIDATED',null).validateField('entrySchoolDate');  
+	event.preventDefault();
+	event.stopPropagation();
+});
+
+$('#stuForm').bootstrapValidator({
+	fields : {
+		stuClassId : {
+			validators : {
+				notEmpty : {
+					message : '请选择班级'
+				}
+			}
+		},entrySchoolDate : {
+			validators : {
+				notEmpty : {
+					message : '请选择入校日期'
+				}
+			}
+		},stuName : {
+			validators : {
+				notEmpty : {
+					message : '请填写学生姓名'
+				}
+			}
+		},stuNo : {
+			validators : {
+				notEmpty : {
+					message : '请填写学生学号'
+				}
+			}
+		}
+	},
+	excluded: [':disabled']
+});
+//班级选项数据初始化
+function classOptionDataInit() {
+	//请求班级数据（通过接口获取数据）
+	$.post(rootPath+'/classDataServlet', function(data) {
+		if (data) {
+			classOptionData = data;
+			//添加到选择标签中
+			addClassSelectItem($('#queClassSelcet'), '全部');
+			//添加到新增对话框的选择标签中
+			addClassSelectItem($('#stuClassSelect'), '请选择班级');
+			//班级调动
+			addClassSelectItem($('#preTransClassSelcet'), '请选择班级');
+			addClassSelectItem($('#nexTransClassSelcet'), '请选择班级');
+		}
+	}, 'json');
+}
+/**
+ * e （select标签元素）
+ * optionHint 提示
+ */
+function addClassSelectItem(e, optionHint) {
+	if (e && classOptionData) {
+		if (classOptionData != null && e[0] != null && e[0].length == 1) {
+			//清空所有的option
+			e.empty();
+			e.append('<option value="">' + optionHint + '</option>');
+			$.each(classOptionData, function(index, obj) {
+				e.append('<option value="'+obj.CLASSESID+'" data-sid="'+ obj.SID +'">' + obj.CLASSESNAME + '</option>');
+			});
+		}
+	}
+}
+//表格的初始化
+function tableInit() {
+	// 表格初始化
+	tableUtil.initTable({
+		table : '#table',
+		toolbar : "#toolbar",
+		url : rootPath + '/studentServlet?optFlag=query',// 远程请求地址
+		uniqueId : 'STUDENTID',
+		queryParams : queryParams,// 请求参数
+		columns : [
+			{
+				//实现多选框
+				checkbox : true
+			},
+			//field对应返回数据中的字段
+			{
+				field : 'STUDENTNO',
+				title : '学号'
+			},
+			{
+				field : 'STUDENTNAME',
+				title : '学生姓名'
+			},
+			{
+				field : 'SEX',
+				title : '性别',
+				formatter : function(value, row, index) {
+					if (value == undefined || value == null
+							|| value == '') {
+						return '';
+					} else {
+						if (value == '1') {
+							return '男';
+						}
+						return '女';
+					}
+				}
+			},
+			{
+				field : 'CLASSESNAME',
+				title : '学生班级'
+			},
+			{
+				field : 'ENTRYTIME',
+				title : '入校日期',
+				formatter : function(value, row, index) {
+					return substring(value);
+				}
+			},
+			{
+				title : '操作',
+				align : 'center',
+				valign : 'center',
+				formatter : function(value, row, index) {
+					var id = row.STUDENTID;
+					//删除html拼接标签 根据 data-xx来传递数据  xx为自己命名的参数
+					var detail = '<a type="button" title="详情" class="btn btn-info shiny btn-xs purple"'
+			+'data-toggle="modal" data-id="'+id+'" data-flag="detail" data-title="学生信息详情" data-target="#stuModal">'
+							+ '<i class="fa fa-eye"></i> 详情</a>';
+					//编辑html拼接标签
+					var edit = '<a type="button" title="编辑" class="btn btn-primary shiny btn-xs purple edit-role"'
+			+' style="display: none;" data-toggle="modal" data-id="'+id+'" data-flag="edit" data-title="学生信息编辑" data-target="#stuModal">'
+							+ '<i class="fa fa-edit"></i> 编辑</a>';
+					//添加拼接标签以join中的字符串分隔开来
+					return [ detail, edit ].join(' ');
+				}
+			} ],
+		onLoadSuccess:function(data){
+        	roleUtil.roleHandler();
+        }
+	});
+	
+};
+//截取日期时间字符串获取日期
+function substring(value) {
+	//判断是否为空
+	if (value == undefined || value == null
+			|| value == '') {
+		return '';
+	}
+	//获取下标
+	var end = value.indexOf('T');
+	//是否找到下标
+	if (end == -1) {
+		end = value.indexOf(' ');
+		if(end==-1){
+			return value;
+		}
+	}
+	//截取字符串
+	var time = value.substring(0, end);
+	return time;
+};
+//请求参数字段
+var searchParams = {};
+//table数据请求参数设置
+function queryParams(params) {//请求参数
+	params.classId = searchParams.classId;
+	params.stuNo = searchParams.stuNo;
+	params.stuName = searchParams.stuName;
+	return params;
+};
+//搜索数据
+function searchData() {
+	//搜索参数设置
+	searchParams.classId = $('#queClassSelcet').val();
+	searchParams.stuNo = $('#queStuNo').val();
+	searchParams.stuName = $('#queStuName').val();
+	tableUtil.refreshData2Query('#table');
+};
+//新增（编辑或详情）对话框关闭监听
+$('#stuModal').on('hide.bs.modal', function(e) {
+	//取消全选
+	$('#table').bootstrapTable('uncheckAll');
+});
+//新增（编辑或详情）对话框打开监听
+$('#stuModal').on('show.bs.modal', function(e) {
+	
+	$('#stuForm')[0].reset();//重置表单
+	
+	var button = $(e.relatedTarget);//打开modal所使用的点击按钮
+	var flag = button.data('flag'); //标识-> add-新增 edit-编辑 detail-详情
+	var title = button.data('title');//modal标题
+	$(this).find('.modal-title').text(title);//设置medal标题
+	//显示确定保存按钮
+	var btnSave = $('#btnStuSave');
+	btnSave.show();
+	//移除点击事件
+	btnSave.removeAttr("onclick");
+	//获取每个组件
+	var classId = $('#stuClassSelect');//班级选择
+	var birthday = $('#stuBirthday');
+	var entryDate = $('#stuEntrySchoolDate');
+	var address = $('#stuAddress');
+	var name = $('#stuName');
+	var sex = $('#stuSex');
+	var stuNo = $('#stuNo');
+	
+	//可操作 移除disabled
+	classId.removeAttr("disabled");
+	address.removeAttr("disabled");
+	name.removeAttr("disabled");
+	sex.removeAttr("disabled");
+	stuNo.removeAttr("disabled");
+	birthday.removeAttr("disabled");
+	entryDate.removeAttr("disabled");
+	
+	//是否为新增			
+	if(flag==='add'){
+		//确定按钮添加新增函数（方法）
+		btnSave.attr('onclick','addSaveData()');
+	}else{
+		//是否为详情
+		var isDetail = flag==='detail';
+	
+		var id = button.data('id');
+		//根据id获取该行的数据-->获取UniqueId标识的行数据
+		var row = tableUtil.getRowData('#table',id);
+
+		//为控件赋值
+		classId.val(row.CLASSESID);
+		birthday.val(substring(row.BIRTHDAY));
+		entryDate.val(substring(row.ENTRYTIME));
+		address.val(row.ADDRESS);
+		name.val(row.STUDENTNAME);
+		sex.val(row.SEX);
+		stuNo.val(row.STUDENTNO);
+		if(isDetail){
+			$('#detailPL').show();
+			var changeText;
+			if(!util.text.isEmpty(row.parentlink)){
+				changeText = row.parentlink.replace(/,/g,'\r\n').trim();
+			}else{
+				changeText='';
+			}
+			$('#parentlink').val(changeText);
+			//界面不可操作
+			btnSave.hide();//隐藏确定按钮
+			classId.attr('disabled', 'disabled');//使下拉框不起作用
+			address.attr('disabled', 'disabled');//使输入框不起作用
+			name.attr('disabled', 'disabled');
+			sex.attr('disabled', 'disabled');
+			stuNo.attr('disabled', 'disabled');
+			birthday.attr('disabled', 'disabled');
+			entryDate.attr('disabled', 'disabled');
+		}else{
+			// 编辑修改
+			btnSave.attr('onclick','editSubmit("'+id+'")');
+		}
+	}
+});
+
+$('#stuModal').on("hidden.bs.modal", function() {
+	$('#detailPL').hide();
+	$('#stuForm').bootstrapValidator('resetForm', true);  //重置验证
+});
+
+//新增保存数据事件
+function addSaveData() {
+	var $form = $('#stuForm');
+	var valid = $form.data('bootstrapValidator');
+	valid.validate();  
+	if(valid.isValid()){
+		//使用post的简单用法 
+		//4个参数的 方法 
+		//第一个 接口地址
+		//第二个 请求参数字符串 （两种类型）<参数名=参数值&参数名=参数值> 或者< {'参数名':参数值,'参数名':参数值} >
+		//第三个 接口连接成功回调 data-->成功返回的结果{result:ok}或者{result:failure}判断实际结果
+		//第四个 返回数据的类型  json（json类型）也就是请求接口必须返回的是json格式的字符串
+		//第一种传参的例子
+		$.post(rootPath+'/studentServlet?optFlag=add', $form.serialize(), function(data) {
+			if (data.result == 'ok') {
+				toastr.success('新增成功','提示');
+				// 请求成功（这里是添加数据成功）提示且刷新数据
+				tableUtil.refreshData2Add('#table');// 刷新表格
+			} else {
+				// 失败
+				toastr.error('新增失败！请稍后再试','提示');
+			}
+		}, 'json');
+		$('#stuModal').modal('hide');
+	}
+};
+//编辑确定点击事件
+function editSubmit(id) {
+	var valid = $('#stuForm').data('bootstrapValidator');
+	valid.validate();  
+	if(valid.isValid()){
+		//根据id获取该行的数据-->获取UniqueId标识的行数据（row为一个对象变量）
+		var row = tableUtil.getRowData('#table',id);
+	
+		//获取每个组件
+		var classId = $('#stuClassSelect');//班级选择
+		var birthday = $('#stuBirthday');
+		var entryDate = $('#stuEntrySchoolDate');
+		var address = $('#stuAddress');
+		var name = $('#stuName');
+		var sex = $('#stuSex');
+		var stuNo = $('#stuNo');
+		
+		//修改row对象（数据）中的数据
+		row.CLASSESID = classId.val();
+		row.BIRTHDAY = birthday.val();
+		row.ENTRYTIME = entryDate.val();
+		row.ADDRESS = address.val();
+		row.STUDENTNAME = name.val();
+		row.SEX = sex.val();
+		row.STUDENTNO = stuNo.val();
+		
+		console.info(row);
+		//post请求修改
+		$.post(rootPath+'/studentServlet?optFlag=edit', {
+			"studentJson" : JSON.stringify(row)
+		}, function(data) {
+			if (data.result == 'ok') {
+				toastr.success('修改成功','提示');
+				// 请求成功（这里是添加数据成功）提示且刷新数据
+				tableUtil.refreshData2Update('#table');// 刷新表格
+			} else {
+				// 失败
+				toastr.error('修改失败！请稍后再试','提示');
+			}
+		}, 'json');
+		$('#stuModal').modal('hide');
+	}
+};
+//删除对话框打开监听（也就是打开的时候会被调用）
+$('#deleteModal').on('show.bs.modal', function(e) {
+	//获取table选中的数据 ->如果没有数据(返回空数组)提示显示数据，有数据的话显示删除确定按钮
+	var checkRows = tableUtil.getSelections('#table'); 
+	var $this = $(this);
+	var btnDel = $('#btnDel');
+	btnDel.removeAttr('onclick');
+	if (checkRows.length == 0) {
+		//空数组 没有选中行
+		$this.find('p').html('&nbsp;请选择记录？');
+		btnDel.hide();//隐藏
+	} else {
+		$this.find('p').html('&nbsp;确认删除选中记录？');
+		var ids = '';
+		$.each(checkRows,function (index,row){
+			var id;
+			if(index===checkRows.length-1){
+				id = row.STUDENTID;
+			}else{
+				id = row.STUDENTID+',';
+			}
+			ids += id;
+		});
+		btnDel.show();
+		btnDel.attr('onclick', 'deleteData("' + ids + '")');
+	}
+});
+//删除数据事件
+function deleteData(ids) {
+	//post请求删除 第二种传参的例子
+	$.post(rootPath+'/studentServlet?optFlag=delete', {
+		'ids' : ids
+	}, function(data) {
+		if (data.result == 'ok') {
+			toastr.success('删除成功','成功');
+			// 请求成功（这里是删除数据成功）提示且刷新数据
+			tableUtil.refreshData2Delete('#table');// 刷新表格
+		} else {
+			// 失败
+			toastr.error('删除失败！请稍后再试','错误');
+		}
+	}, 'json');
+	$('#deleteModal').modal('hide');
+};
+
+//批量调动
+var modalFlag;
+function batchRemoveBtn(){
+	var selects = tableUtil.getSelections($('#table'));
+	var studentid = "";
+	if(selects.length > 0){
+		$.each(selects, function(i, item){
+			studentid = studentid.concat(item.STUDENTID + ",");
+		})
+		studentid = studentid.substring(0, studentid.length-1);
+		$('#transferModal').attr('data-studenid', studentid);
+			modalFlag = 1;
+		$('#transferModal').modal('show');
+	}else {
+		toastr.info('请选择下表调动的学生', '提示');
+	}
+}
+
+//班级整体学生调动
+function classRemoveBtn(){
+	modalFlag = 2;
+	$('#transferModal').modal('show');
+}
+
+var transOpt = 0; 
+$('#transferModal').on('show.bs.modal', function(e){
+	$('#transferForm')[0].reset();
+	switch(modalFlag) {
+		case 1:
+			$('#preTransferId').hide();
+			classOptionDataInit();
+			transOpt = 1;  //批量调动
+		break;
+		case 2:
+			$('#preTransferId').show();
+			transOpt = 2; //整体班级调动
+		break;
+	}
+	
+});
+
+$('#btnTtrans').click(function(e){
+	switch(transOpt) {
+		case 1: //批量调动
+			var studenids= $('#transferModal').attr("data-studenid");
+			var classname = $('#nexTransClassSelcet').find("option:selected").text(); //班级名称
+			var classid = $('#nexTransClassSelcet').val(); //班级ID
+			var sid = $('#nexTransClassSelcet').find("option:selected").attr("data-sid"); //学校ID
+			$.ajax({
+				url: rootPath + '/studentServlet?optFlag=selectBatch',
+				dataType: 'json',
+				data: {
+					studenids: studenids,
+					classid: classid,
+					sid: sid
+				},
+				cache: false,
+				success: function (data) {
+					if (data.result == 'ok') {
+						toastr.success(data.message,'成功');
+						// 请求成功（这里是删除数据成功）提示且刷新数据
+						tableUtil.refreshData2Delete('#table');// 刷新表格
+					} else {
+						// 失败
+						toastr.error('操作失败！请稍后再试','错误');
+					}
+				}
+			});
+		break;
+		
+		case 2:
+			var oldcid = $('#preTransClassSelcet').val(); //新班级ID
+			var newcid = $('#nexTransClassSelcet').val(); //新班级ID
+			var sid = $('#nexTransClassSelcet').find("option:selected").attr("data-sid"); //学校ID
+			$.ajax({
+				url: rootPath + '/studentServlet?optFlag=classBatch',
+				dataType: 'json',
+				data: {
+					oldcid: oldcid,
+					newcid: newcid,
+					sid: sid
+				},
+				cache: false,
+				success: function (data) {
+					if (data.result == 'ok') {
+						toastr.success(data.message,'成功');
+						// 请求成功（这里是删除数据成功）提示且刷新数据
+						tableUtil.refreshData2Delete('#table');// 刷新表格
+					} else {
+						// 失败
+						toastr.error('操作失败！请稍后再试','错误');
+					}
+				}
+			});
+		break;
+	}
+});
+

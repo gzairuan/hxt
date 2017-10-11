@@ -1,0 +1,73 @@
+package com.hinear.hxt.entity;
+
+import java.io.Serializable;
+
+public class Lesson implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
+	
+	private int CLASSESID;
+	private int SUBJECTID;
+	private int TID;
+	private int SECTION;
+	private int SHANGXIA;
+	private int WEEKDAY;
+	
+	public Lesson(int cLASSESID, int sUBJECTID, int tID, int sECTION, int sHANGXIA, int wEEKDAY) {
+		CLASSESID = cLASSESID;
+		SUBJECTID = sUBJECTID;
+		TID = tID;
+		SECTION = sECTION;
+		SHANGXIA = sHANGXIA;
+		WEEKDAY = wEEKDAY;
+	}
+
+	public int getCLASSESID() {
+		return CLASSESID;
+	}
+
+	public void setCLASSESID(int cLASSESID) {
+		CLASSESID = cLASSESID;
+	}
+
+	public int getSUBJECTID() {
+		return SUBJECTID;
+	}
+
+	public void setSUBJECTID(int sUBJECTID) {
+		SUBJECTID = sUBJECTID;
+	}
+
+	public int getTID() {
+		return TID;
+	}
+
+	public void setTID(int tID) {
+		TID = tID;
+	}
+
+	public int getSECTION() {
+		return SECTION;
+	}
+
+	public void setSECTION(int sECTION) {
+		SECTION = sECTION;
+	}
+
+	public int getSHANGXIA() {
+		return SHANGXIA;
+	}
+
+	public void setSHANGXIA(int sHANGXIA) {
+		SHANGXIA = sHANGXIA;
+	}
+
+	public int getWEEKDAY() {
+		return WEEKDAY;
+	}
+
+	public void setWEEKDAY(int wEEKDAY) {
+		WEEKDAY = wEEKDAY;
+	}
+	
+}

@@ -1,0 +1,35 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>角色管理</title>
+<link rel="shortcut icon" href="../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<!-- 包装内容 动画 从右方进入 -->
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- 面板 -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h5>角色管理</h5>
+			</div>
+			<div class="ibox-content">
+			</div>
+		</div>
+	</div>
+
+
+	<!-- 全局js -->
+    <script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+    <script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>学校简介</title>
+<link rel="shortcut icon" href="../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/plugins/editor/summernote.css" rel="stylesheet">
+<link href="../../css/plugins/editor/summernote-bs3.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+</head>
+
+<body class="gray-bg">
+	<div class="wrapper wrapper-content fadeInRight">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>学校简介</h5>
+                        <div class="ibox-tools">
+                            <button id="btn-edit" type="button" class="btn btn-xs btn-primary edit-role" style="display: none;" onclick="schoolInfoEdit()">
+                                <i class="fa fa-edit"></i><span>编辑</span>
+                            </button>
+                            <button id="btn-post" type="button" class="btn btn-xs btn-primary" style="display: none;" onclick="save()">
+                                <i class="fa fa-arrow-up"></i><span>保存</span>
+                            </button>
+                            <button id="btn-cancel" type="button" class="btn btn-xs btn-primary" style="display: none;" onclick="cancel()">
+                                <i class="fa fa-close"></i><span>取消</span>
+                            </button>
+                            <!-- <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a> -->
+                        </div>
+                    </div>
+                    <div class="ibox-content" id="contentId">
+						<div id="summernoteId">
+							<!-- <p style="font-size: medium;">&nbsp;&nbsp;&nbsp;&nbsp;
+									南湾幼儿园创办于92年5月，园舍投资220多万，占地面积4350平方米，建筑面积2400平方米，
+									绿人化覆盖率达80%，先后评为“广州市绿色幼儿园”、绿人化覆盖率达80%，园舍布局合理、场地宽敞、设备先进。
+									幼儿生活、卫生保健、教育教学设施配备完善，师资队伍素质高。</p>
+								<img src="../../img/nanwanyry.jpg" class="img-circle"
+									width="340" height="213">
+
+								<p style="font-size: medium;">园内四季繁花似锦、绿树成荫、景色优美、童趣盎然，后山果园拥有得天独厚的地理条件，提供了天然氧气吧的园
+									林公园先特色。户外有丰富的活动设施（如宽大的游泳池、波波池、大型篮球场等）室内设有方便简单安全的睡室与
+									活动室、健全的功能室、音乐室、美术室、图书室等。给幼儿提供良好的生活、学习环境，是一所理想的幼儿园。
+									在黄埔区教育局和南湾社区的领导重视和关怀下，通过全园教职工的共同努力，我园的办园条件不断完善，办园水平
+									显著提高。以幽雅的环境、先进的设施设备，并以民间艺术、英语、音乐、舞蹈、美术、武术等为教学办园特色。成
+									为园舍环境、设施设备、管理水平、保教质量均一流的幼儿园。并多次被评为市、区、片的先进园所，也先后评为“广 州市绿色幼儿园”、“
+									黄埔区一级幼儿园”“幼儿参加全国、省、市、区、片各类竞赛活动获得奖项达几百多项。得到 上级领导和家长们的一致好评。</p>
+								 -->
+						</div>
+					</div>
+                </div>
+            </div>
+        </div>
+	</div><!-- end wrapper -->
+	
+	<!-- 编辑modal 暂时不用modal来做-->
+	<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-lablledby="editModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document" style="width:70%; heigth:520">
+            <!-- 会话窗口 -->
+            <div class="modal-content">
+                <!-- 模态框内容 -->
+                <div class="modal-header">
+                    <!-- 模态框头 -->
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <!-- 右上角关闭按钮“x” -->
+                    <h5 class="modal-title" id="editModalTitle">编辑学校简介</h5>
+                </div>
+                <div class="modal-body">
+                	<div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>富文本编辑器</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="form_editors.html#">
+                                <i class="fa fa-wrench"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-user">
+                                <li><a href="form_editors.html#">选项1</a>
+                                </li>
+                                <li><a href="form_editors.html#">选项2</a>
+                                </li>
+                            </ul>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content no-padding">
+
+                        <div class="summernote">
+                       
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+				</div>
+                <div class="modal-footer">
+                    <button id="btnEdit" type="button" class="btn btn-primary">提交</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+	</div>
+	
+	
+
+<!-- 全局js -->
+<script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+<script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+<!-- 兼容ie9及以下 -->
+<script src="../../js/json2.js"></script>
+<!-- 自定义js -->
+<script src="../../js/content.js?v=1.0.0"></script>
+<!-- SUMMERNOTE -->
+<script src="../../js/plugins/editor/summernote.min.js"></script>
+<script src="../../js/plugins/editor/summernote-zh-CN.js"></script>
+<script src="../../js/common/util.js"></script>
+
+<script type="text/javascript">
+	
+	//初始页面隐藏‘保存’、‘取消’按钮，只显示‘编辑’按钮
+	var init = $(document).ready(function() {
+		$("#btn-post").hide();
+		$("#btn-cancel").hide();
+		//初始学校简介
+		$.ajax({
+			url: "../../schoolinfoInitServlet",
+			success: function(data){
+				//转出json格式
+				var json = $.parseJSON(data);
+				if(json == "-1"){
+					$("#summernoteId").html("该用户未分配学校权限，暂时无法查看学校信息，如有需要请联系学校中心或者管理员！"); 
+				}else{
+					//获取内容
+					var contents = json[0].NEWSCONTENT;
+				 	$("#summernoteId").html(contents); 
+				}
+			}
+		});
+	});
+	
+	//学校编辑
+	function schoolInfoEdit(){
+		$("#contentId").addClass("no-padding");
+		$("#btn-edit").hide();
+		$("#btn-post").show();
+		$("#btn-cancel").show();
+		
+		/* 初始化summernote编辑器  */
+		$("#summernoteId").summernote({
+			lang : 'zh-CN',
+			height: 340, /* 设置固定图片高度 */
+			minHeight: 340,
+			maxHeight: 400,
+			focus : true,
+			dialogsFade: true, //Dialogs淡出效果
+			toolbar:[ //自定义toolbar 显示工具
+				['style', ['bold','italic','underline','clear', 'fontname']],
+				['font',['strikethrough','superscript','subscript']], // strikethrough:切换删除线
+				['style', ['style']], //字体样式
+				['fontsize', ['fontsize']], //设置字体大小
+				['color', ['color']], //设置前景色和背景色
+				['para', ['ul', 'ol', 'paragraph']], //段落对齐下拉
+				['height', ['height']], //设置行高
+// 				['insert', ['link','picture', 'video', 'hr', 'table']], //insert 插入分别有：打开链接对话框、打开图片对话框、打开视频对话框、插入水平线、插入一个表
+				['insert', ['link','picture', 'hr', 'table']], // 暂时不实现视频
+				['Misc', ['fullscreen', 'codeview', 'undo', 'redo', 'help']] //Misc分别有： 切换全屏编辑模式、所见即所得和html编辑模式切换、撤销、重做、打开帮助对话框
+			],
+			/* 重写图片上传功能  */
+			 onImageUpload: function(files, editor, $editable) {
+// 				 console.log('image upload:', files, editor, $editable);
+    			sendFile(files[0],editor,$editable);
+    		}
+		});
+	};
+
+	//编辑提交
+	var save = function() {
+		$("#contentId").removeClass("no-padding");
+		var nwesContent = $("#summernoteId").code(); //save HTML If you need(aHTML: array).
+// 		console.log("aaa=" + nwesContent);
+		//保存编辑内容
+		$.ajax({
+			url: "../../schoolInfoSaveServlet",
+			type: "POST",
+			cache: false,
+			data:{
+				"newsContent": nwesContent
+			},
+			success: function(data) {
+				alert("保存成功");
+			}
+		});
+		
+		$("#summernoteId").destroy();
+		$("#btn-edit").show();
+		$("#btn-post").hide();
+		$("#btn-cancel").hide();
+	};
+
+	//取消提交
+// 	var cancel = function() {
+	function cancel() {
+		$("#contentId").removeClass("no-padding");
+		$("#summernoteId").destroy();
+		$("#btn-edit").show();
+		$("#btn-post").hide();
+		$("#btn-cancel").hide();
+	};
+	
+	//发送文件
+	function sendFile(file, editor, $editable){
+		
+		$(".note-toolbar.btn-toolbar").append('正在上传图片');
+		var filename = false;
+		try{
+			filename = file['name'];
+			alert("文件名：" + filename);
+		}catch(e){
+			filename = false;
+		}
+		if(!filename){
+			$('.note-alarm').remove();
+		}
+		//以防止图片在编辑器内拖拽引发第二次上传导致的错误
+		var ext = filename.substr(filename.lastIndexOf("."));
+		ext = ext.toUpperCase();
+		var timestamp = new Date().getTime();
+// 		var name = timestamp+"_"+$("#summernote").attr('aid')+ext;
+		var name = timestamp+"_"+filename;
+		
+		//name是文件名，自己随意定义，aid是我自己增加的属性用于区分文件用户
+		var data = new FormData();
+		data.append("uploadfile", file);
+		data.append("filename",name);
+		data.append("token",$("#summernote").attr('token'));
+		//执行图片上传处理
+		$.ajax({
+			data: data,
+			type: "POST",
+			url: "../../uploadFileEdit", //图片上传处理的url,返回的是图片上传后的路径,如：hxt/manage/upload/pic1.jpg
+			contentType: false,
+			cache: false,
+			processData: false,
+			dataType : "json",  
+			success: function(data) {
+				//data是返回的hash,key之类的值，key是定义的文件名
+				//把图片放到编辑框中。editor.insertImage 是参数，写死。后面的http是网上的图片资源路径。
+				//网上很多就是这一步出错。 只有这个才能显示图片==>> editor.insertImage($editable, data['url']);
+// 				$('#editor').summernote('insertImage', data.url); 
+// 				$('#summernote').summernote('editor.insertImage', data.url);
+				editor.insertImage($editable, data['url']);
+
+				$(".note-alarm").html("上传成功,请等待加载");
+				setTimeout(function(){$(".note-alarm").remove();},3000);
+				},
+			error: function(){
+				$(".note-alarm").html("上传失败");
+				setTimeout(function(){$(".note-alarm").remove;}, 3000);
+			}
+		});
+	};
+	
+</script>
+
+<script src="../../js/common/role-handler.js"></script>
+</body>
+</html>

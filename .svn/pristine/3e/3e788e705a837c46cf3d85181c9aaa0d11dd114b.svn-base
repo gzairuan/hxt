@@ -1,0 +1,354 @@
+;
+var rootPath = util.getRootPath();
+var table = $('#tableUser');
+var userTypeSelect;
+var userShoolSelect;
+
+//初始化查询条件
+$(function(){
+	//初始化table
+	tableInit();
+	
+	var uTypeId = $('#uTypeId');
+	var uSchoolId = $('#uSchoolId');
+	//初始化查询下拉条件数据
+	addUserTypeSelectItem(uTypeId); //用户类型下拉选择
+	addSchoolIdSelectItem(uSchoolId); //学校下拉选择
+});
+
+//用户类型下拉选择
+function addUserTypeSelectItem(e) {
+	if(e && e[0].length==1){
+		//清空所有的option
+		e.empty();
+		e.append('<option value="0" selected>全部</option>');
+		$.ajax({
+			url: rootPath+'/userQueryInitServlet',
+			data: "optFlag=uTypeList",
+			success: function(data){
+// 				console.info(data);
+				var jsonObj=eval("("+data+")");  
+		        $.each(jsonObj, function (i, item) {  //循环json，添加下拉标签
+		            e.append('<option value="'+item.USERTYPEID+'">'+item.USERTYPENAME+'</option>'); 
+		        });  
+			}
+		});
+	}
+}
+
+//学校下拉选择数据
+function addSchoolIdSelectItem(e){
+	if(e && e[0].length==1){
+		//清空所有的option
+		e.empty();
+		e.append('<option value="0">全部</option>');
+		$.ajax({
+			url: rootPath+'/userQueryInitServlet',
+			data: "optFlag=uSchoolList",
+			success: function(data){
+				var json = JSON.parse(data);
+				var attr = json.rows;
+				//var jsonObj=eval("("+data+")");  
+		        $.each(attr, function (i, item) {  //循环json，添加下拉标签
+		            e.append('<option value="'+item.SID+'">'+item.SNAME+'</option>'); 
+		        });  
+			}
+		});
+	}
+}
+
+//初始化Table
+function tableInit(){		
+		table.bootstrapTable({
+		url : rootPath+'/userInitServlet',//远程请求地址
+		method : 'post',//请求方式
+		dataType : 'json',//接收数据类型
+		contentType: "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+		striped : true, //是否显示行间隔色
+		toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+		cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+		sortable : false, //是否启用排序
+		pagination : true, //是否显示分页（*）
+		pageNumber : 1, //初始化加载第一页，默认第一页
+		pageSize : 10, //每页的记录行数（*）
+		pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+		sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+		clickToSelect : true, //是否启用点击选中行
+		uniqueId : 'USERID', //每一行的标识（要具有唯一性）
+		queryParams: queryParams, //请求参数
+		columns : [
+				//field对应返回数据中的字段
+				{
+					checkbox:true
+				},
+				{
+					field : 'USERNAME',
+					title : '用户名 '
+				},
+				{
+					field : 'usertypename',
+					title : '类型'
+				},
+				{
+					field : 'REALNAME',
+					title : '姓名 '
+				},
+				{
+					field : 'SNAME',
+					title : '学校'
+				},
+				{
+					field : 'MOBILE',
+					title : '联系电话 ',
+					formatter : function(value, row, index) {
+						if(value == null) {
+							return "";
+						}else{
+							return value;
+						}
+					}
+				},
+				{
+					field : 'CTIME',
+					title : '创建时间',
+					formatter : function(value, row,
+							index) {
+						var time = value.replace('T',' ');
+						return time;
+					}
+				},
+				{
+					field : 'LOGINTIME',
+					title : '登录时间',
+					formatter : function(value, row,
+							index) {
+						if(value == null) 
+							return "";
+					}
+				},
+				{
+					field : 'EMAIL',
+					title : '邮箱',
+					formatter : function(value, row, index) {
+						if(value == null) {
+							return "";
+						}else{
+							return value;
+						}
+					}
+				},
+				{
+					field : 'statename',
+					title : '状态'
+				},
+				{
+					title : '操作',
+					align : 'center', width:'12%',
+					formatter : function(value, row, index) {
+						//获取当前row内容
+						var userId = row.USERID;
+						var edit = '<a type="button" title="修改" class="btn btn-primary shiny btn-xs purple" data-id="'+ userId +'" data-flag="edit" data-toggle="modal" data-target="#addOrEditModal"><i class="fa fa-edit">修改</i></a>&nbsp;';
+						var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple" onclick="confirmDeleteModal('
+								+ userId
+								+ ')" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i>删除</a>';
+						return [edit,del].join('');
+					}
+				}
+				], 
+		onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+			$(".info").removeClass("info");
+			$(ele).addClass("info");
+		}
+	});
+};
+
+//定义初始化传递参数
+var searchParams = {optFlag: "init"}; 
+
+// 传递参数赋值
+function queryParams(params) {
+	params.optFlag = searchParams.optFlag;
+	params.utype = searchParams.utype;
+	params.ustate = searchParams.ustate;
+	params.uschool = searchParams.uschool;
+	params.uname = searchParams.uname;
+	params.uphone = searchParams.uphone;
+	return params;
+};
+
+//查询条件参数设置
+function searchData(){
+	searchParams.optFlag = searchParams.optFlag;
+	searchParams.utype = $('#uTypeId').val();
+	searchParams.ustate = $('#uStateId').val();
+	searchParams.uschool = $('#uSchoolId').val();
+	searchParams.uname = $('#uName').val();
+	searchParams.uphone = $('#uPhone').val();
+	console.info("utype="+searchParams.utype + ",uname="+searchParams.uname);
+	//刷新数据 跳转第一页
+	table.bootstrapTable('destroy');//先要将table销毁，否则会保留上次加载的内容
+	//重新初使化表格。
+	tableInit();
+}
+
+// 打开时执行：新增/修改操作
+$('#addOrEditModal').on('show.bs.modal', function(event){
+	var button = $(event.relatedTarget); //获取触发目标事件按钮
+	var optFlag = button.data('flag'); //获取按钮点击事件传给modal的 data参数标识
+	var btnSave = $('#btnSave');
+	var modal = $(this); //获取当前的modal
+	var opt = "add";
+	//初始化 下拉选项值:用户类型、学校
+	var m_uTypeId = $('#modalUTypeId');
+	var m_uSchool = $('#modalUSchoolId');
+	
+	addUserTypeSelectItem(m_uTypeId); 
+	addSchoolIdSelectItem(m_uSchool);
+	
+	if(optFlag == opt){ //新增操作
+// 		console.info("新增操作" + optFlag);
+		modal.find('.modal-title').text('用户新增'); //设置modaltitle
+		m_uTypeId.removeAttr('disabled');
+		$('#uname').removeAttr('readonly');
+		
+		$('#user-form')[0].reset();  //清空form 表单
+		btnSave.removeAttr("onclick"); 
+		btnSave.attr("onclick", "addUser('"+optFlag+"')"); //添加保存事件
+	}else{//修改操作
+		console.info("修改操作");
+		var userId = button.data('id');
+		console.info("userId修改=="+ userId);
+		modal.find('.modal-title').text('用户编辑'); //改变modal的title
+		m_uTypeId.attr('disabled', 'disabled');
+		$('#uname').attr('readonly', 'readonly');
+		
+		var row = table.bootstrapTable('getRowByUniqueId', userId);
+		console.info("row.USERTYPEID="+row.USERTYPEID+ " row.SID="+row.SID);
+		
+		m_uTypeId.val(row.USERTYPEID);
+		m_uSchool.val(row.SID);
+		$('#uname').val(row.USERNAME);
+		$('#upassword').val(row.PASSWORD);
+		$('#uphone').val(row.MOBILE);
+		$('#usignature').val(row.SIGNATURE);
+		$('#uStateId').val(row.STATE);
+		$('#ustudent').val(row.STUDENTNAME);
+		$('#urealName').val(row.REALNAME);
+		$('#uaffirmPass').val(row.PASSWORD);
+		$('#uemail').val(row.EMAIL);
+		
+		//添加保存按钮事件
+		btnSave.removeAttr("onclick");
+		btnSave.attr("onclick", 'eidtUser('+userId+')');
+	}
+	
+});
+
+//新增时 modal用户类型监听事件
+function changeUTypeId(){
+	var m_uTypeId = $('#modalUTypeId');
+	var utValue = m_uTypeId.val();
+	var divStudentSelect = $('#divStudentId');
+	var divSchoolId = $('#divSchoolId');
+	var divStudentId11 = $('#divStudentId11');
+// 	console.info("utValue="+utValue);
+	if(utValue == 2 || utValue == 0){ //当为家长2 时显示 学生选择框
+		divStudentSelect.show();
+		divSchoolId.show();
+		divStudentId11.removeAttr("style"); //移除属性
+		divStudentId11.css('display', 'none'); 
+	}else if(utValue == 4){//管理员4
+		divStudentSelect.hide();
+		divSchoolId.hide();
+	}else{ //老师3、校长1、学生6
+		divStudentSelect.hide(); 
+		divSchoolId.show();
+		divStudentId11.removeAttr("style"); //移除属性
+		divStudentId11.css('visibility', 'hidden'); //隐藏div并占据一个空间
+	}
+}
+
+//新增保存方法
+function addUser(optFlag){
+	var $form = $('#user-form');
+	$.ajax({
+		url: rootPath+'/userInitServlet',
+		data: $form.serialize() + "&optFlag="+optFlag,
+		success: function(data){
+			var json = JSON.parse(data);
+			console.info("222="+json.result);
+			if(json.result == "ok"){
+				alert("新增成功！");
+			}else{
+				alert("新增失败！请联系管理员！");
+			}
+			table.bootstrapTable('refresh');
+		}
+	});
+	$('#addOrEditModal').modal('hide');
+};
+
+//修改
+function eidtUser(userId){
+	//var $form = $('#user-form');
+	var row = table.bootstrapTable('getRowByUniqueId', userId);
+	console.info("row修改前："+ row);
+	row.SID = $('#modalUSchoolId').val();
+// 	row.PASSWORD = $('#upassword').val();
+	row.MOBILE = $('#uphone').val();
+	row.SIGNATURE = $('#usignature').val();
+	row.STATE = $('#uStateId').val();
+// 	row.STUDENTNAME = $('#ustudent').val();
+	row.REALNAME = $('#urealName').val();
+	row.PASSWORD = $('#uaffirmPass').val();
+	row.EMAIL = $('#uemail').val();
+	console.info("row修改后："+ row);
+	$.ajax({
+		url: rootPath+'/userInitServlet',
+		data: {
+			"userJson": JSON.stringify(row),
+			"optFlag": "edit",
+		},
+		success: function(data){
+			var json = JSON.parse(data);
+			console.info("222="+json.result);
+			if(json.result == "ok"){
+				alert("修改成功！");
+			}else{
+				alert("修改失败！请联系管理员！");
+			}
+			table.bootstrapTable('refresh');
+		}
+	});
+	
+	$('#addOrEditModal').modal('hide');
+};
+
+/*table 删除按钮*/
+function confirmDeleteModal(userId) {
+	var btnDel = $('#btnDel');
+	btnDel.removeAttr("onclick");
+	btnDel.attr('onclick', 'deleteData(' + userId + ')');
+};
+
+/*modal 确认删除按钮*/
+function deleteData(userId) {
+// 	console.info("userId=="+userId);
+	$.ajax({
+		url : rootPath+"/userInitServlet",
+		data : {
+			"userId" : userId,  //学校ID
+			"optFlag": "delete"
+		},
+		success : function(data) {
+			var json = JSON.parse(data); // 转为json格式
+			var result = json.result;
+			if(result=="fail"){ //如果返回结果为 fail 则删除失败
+				alert("删除失败！");
+			}else{
+				alert("删除成功！");
+			}
+			table.bootstrapTable('refresh'); //刷新表格
+		}
+	});
+};

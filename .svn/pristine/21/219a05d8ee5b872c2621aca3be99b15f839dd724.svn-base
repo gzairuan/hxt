@@ -1,0 +1,64 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getContextPath();
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+	name="viewport">
+<title>页面标题</title>
+<!-- 图标 -->
+<link rel="shortcut icon" href="<%=basePath%>/icons/favicon.ico">
+<!-- 全局公用CSS -->
+<link href="<%=basePath%>/css/bootstrap.min.css?v=3.3.7"
+	rel="stylesheet">
+<link href="<%=basePath%>/css/font-awesome.min.css?v=4.4.0"
+	rel="stylesheet">
+<!-- base CSS -->
+<link href="<%=basePath%>/css/animate.css" rel="stylesheet">
+<link href="<%=basePath%>/css/style.css?v=4.1.0" rel="stylesheet">
+<!-- table -->
+<link
+	href="<%=basePath%>/css/plugins/bootstraptable/bootstrap-table.min.css"
+	rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<!-- 包装内容 动画 从右方进入 -->
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- 面板START -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h5>页面标题</h5>
+			</div>
+			<!-- 内容START -->
+			<div class="ibox-content">
+				<table id="table"></table>
+			</div>
+			<!-- 内容END -->
+		</div>
+		<!-- 面板END -->
+	</div>
+
+	<!-- 全局公用JS -->
+	<script src="<%=basePath%>/js/jquery-3.2.1.min.js?v=3.2.1"></script>
+	<script src="<%=basePath%>/js/bootstrap.min.js?v=3.3.7"></script>
+	<!-- 兼容ie9及以下JSON -->
+	<script src="<%=basePath%>/js/json2.js"></script>
+	<!-- role-handler -->
+	<script src="<%=basePath%>/js/common/role-handler.js"></script>
+	<!-- util -->
+	<script src="<%=basePath%>/js/common/util.js"></script>
+	<script src="<%=basePath%>/js/common/util-table.js"></script>
+	<!-- table -->
+	<script
+		src="<%=basePath%>/js/plugins/bootstraptable/bootstrap-table.min.js"></script>
+	<script
+		src="<%=basePath%>/js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.min.js"></script>
+</body>
+</html>

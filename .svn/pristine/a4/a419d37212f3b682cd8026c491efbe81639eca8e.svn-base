@@ -1,0 +1,182 @@
+/*
+ * 个人资料
+ * 
+*/
+var rootPath = util.getRootPath();
+var userJson;
+
+/* 个人资料页面信息初始化  */	
+ $(function() {
+	//初始化页面显示
+	initMethod();
+	
+	$.ajax({
+		url: rootPath +'/myselfInitServlet?optFlag=init',
+		success:function(data){
+			var json = $.parseJSON(data);
+			if(json != null){ //初始化值
+				userJson = json[0];
+				$("#uName").val(userJson.REALNAME);
+				$("#uPhone").val(userJson.MOBILE);
+				$("#uEmail").val(userJson.EMAIL);
+				$("#uSignature").val(userJson.SIGNATURE);
+				//需要初始化头像值todo...
+				var photourl =userJson.USERPHOTO;
+				if(photourl == null){
+					$("#imgId").attr('src', '/hxt/img/none.jpg');
+				}else{
+					$("#imgId").attr('src', userJson.USERPHOTO);
+				}
+			}
+		}
+	});
+	
+});
+
+$('#changeImgId').fileinput({
+	language: 'zh', //设置语言
+ 	uploadUrl: rootPath + '/uploadPortraitToService', // 自动上传url, //上传的地址
+	//设置预览图片大小
+ 	showPreview : false, //是否显示预览
+ 	showBrowse: true,
+ 	showUpload: false, //是否显示上传按钮
+	showRemove : false, //显示移除按钮
+    showCaption: false,//是否显示标题
+    showCancel: false,  //
+    resizeImage: false,
+    resizePreference: 'width',
+ 
+	uploadLabel: "上传", ////设置上传按钮的汉字
+    browseClass: "btn btn-primary", //按钮样式     
+    browseIcon: '<i class="fa fa-camera"></i>&nbsp;', //上传按钮图片样式
+    browseLabel: '上传/更换头像', //文件上传按钮描述
+    maxFileCount: 9,/*允许最大上传数，可以多个，当前设置9个*/
+    msgFilesTooMany: "最多只能上传9张图片", 
+    dropZoneTitle: "请通过拖拽图片文件放到这里",
+    dropZoneClickTitle: "或者点击此区域添加图片",
+    browseOnZoneClick: false, //是否点击区域进行选择文件
+    fileActionSettings:{//上传图片动作
+   		showUpload: false, //是否显示单个文件上传按钮
+   		showZoom: true, //是否显示预览按钮
+   		showDrag: false //是否允许拖拽
+    },
+    layoutTemplates:{
+   		progress: ""
+    },
+//                 elErrorContainer: "",
+//                 msgErrorClass: "",//上传错误信息显示
+	allowedFileExtensions : ['jpg', 'png','gif', 'jpeg'],//上传文件格式
+ 	overwriteInitial: false,
+ 	maxFileSize: 1000, //上传文件大小
+ 	maxFilesNum: 9, //上传文件最大个数
+ 	msgFilesTooMany: "最大只能上传9张图片", //上传文件超过最大值提示
+ 	initialCaption: "选择上传图片", //文本框初始话value
+ 	removeFromPreviewOnError: false,
+ 	slugCallback : function(filename) {//处理空格
+        return filename.replace('(', '_').replace(']', '_');
+    }
+}).on('filebatchselected', function (event, data, id, index) {
+	$("#imgId").attr('src', data[0].File);
+	debugger;
+//  	$(this).fileinput("upload"); //自动执行文件上传
+ }).on("fileuploaded", function(event, data) {//单个文件选择成功回调函数
+	if(data.response){
+		var array = data.response,
+			imgePath = array[0].imgeUrl
+			filenames = data.filenames;
+			debugger;
+			//编辑选中图片及时更新头像
+    	// 	var imgePath = "http://localhost:8080/hxt/upload/schoolInfo/gem1.jpg";
+//    	$("#imgId").attr('src', imgePath); //选择头像渲染回显
+	}
+    	
+});
+
+$("#changeImgId").on("filebatchselected", function(event, files) {
+	var files = files;
+	debugger;
+});
+
+//个人信息编辑
+ function editEventt(){
+	$("#editId").hide();
+	$("#changeDivId").show();
+	$("#submitId").show();
+	$("#cancelId").show();
+	$('input').removeAttr("readonly"); //设置input为可编辑
+	
+	var imgePath;
+	//初始化fileinput控件（第一次初始化）
+	/*$('#changeImgId').fileinput({
+		language: 'zh', //设置语言
+		showPreview : false, //是否显示预览
+		showUpload: false, //是否显示上传按钮
+        showRemove : false, //显示移除按钮
+        showCaption: false,//是否显示标题
+        browseClass: "btn btn-info", //按钮样式     
+        browseIcon: '<i class="fa fa-camera"></i>&nbsp;',
+        allowedFileExtensions : ['jpg', 'png','gif'],//接收的文件后缀
+        title: "头像上传",
+        window: true,//默认弹出附件上传窗口
+        uploadAsync: true, // 是否为异步上传
+        
+        uploadUrl: rootPath + '/uploadPortraitToService' // 自动上传url
+	}).on("filebatchselected", function(event, files) {//多个文件批量上传
+        var uploadfile= $(this).fileinput("upload");
+    }).on("fileuploaded", function(event, data) {//单个文件选择成功回调函数
+    	var array = data.response;
+    	imgePath = array[0].imgeUrl;
+    	console.info("imgePath"+imgePath);
+    	//编辑选中图片及时更新头像
+    	// 	var imgePath = "http://localhost:8080/hxt/upload/schoolInfo/gem1.jpg";
+    	$("#imgId").attr('src', imgePath); //选择头像渲染回显
+//         alert('处理成功');
+	});*/
+	
+};
+
+
+//个人信息保存
+var saveEvent = function(){
+	var uName = $("#uName").val();
+	var uPhone = $("#uPhone").val();
+	var uEmail = $("#uEmail").val();
+	var uSignature = $("#uSignature").val();
+	var imgpath = "userimg/gem1.jpg";
+	var uPhoto = $("#imgId")[0].src; 
+	
+	userJson.REALNAME = uName;
+	userJson.MOBILE = uPhone;
+	userJson.EMAIL = uEmail
+	userJson.SIGNATURE = uSignature;
+	userJson.USERPHOTO = imgpath;
+	$.ajax({
+		url: rootPath + "/myselfInitServlet",
+		type:"post",
+		dataType:'json',
+		data:{
+			"user": JSON.stringify(userJson),
+			"optFlag": "saveEvent"  // 操作标识
+		},
+		success:function(data){
+			//data.result=='ok'
+			console.info(data);
+			console.log("保存成功");
+		}
+	});
+};
+
+//取消操作
+var cancelEvent = function(){
+	initMethod();
+};
+
+//个人信息初始化页面初始化只显示“编辑”按钮 	
+function initMethod(){
+	$("#editId").show();
+	$("#changeDivId").css('display', 'none');
+	$("#submitId").hide();
+	$("#cancelId").hide();
+	$('input').attr("readonly", "readonly"); //设置input为只读
+	
+};

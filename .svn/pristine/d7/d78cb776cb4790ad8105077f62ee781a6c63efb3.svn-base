@@ -1,0 +1,140 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getContextPath();
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+	name="viewport">
+<title>入校离校</title>
+<link rel="shortcut icon" href="<%=basePath%>/icons/favicon.ico">
+<link href="<%=basePath%>/css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="<%=basePath%>/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="<%=basePath%>/css/animate.css" rel="stylesheet">
+<link href="<%=basePath%>/css/style.css?v=4.1.0" rel="stylesheet">
+<!-- 表格 -->
+<link href="<%=basePath%>/css/plugins/bootstraptable/bootstrap-table.min.css" rel="stylesheet">
+<!-- 下拉多选 -->
+<link href="<%=basePath%>/css/plugins/multiple-select/bootstrap-multiselect.css" rel="stylesheet">
+<!-- 日期选择 -->
+<link href="<%=basePath%>/css/plugins/datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
+<!-- 窗口 -->
+<link href="<%=basePath%>/css/plugins/hxt/box.css" rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<!-- 包装内容 动画 从右方进入 -->
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- 面板 -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h5>入校离校</h5>
+			</div>
+			<div class="ibox-content">
+				<form class="form-horizontal" role="form" id="queryForm">
+					<div class="box-body" style="padding: 0px;">
+						<div class="col-md-3">
+							<div class="form-group">
+								<label class="col-md-5 control-label" for="queStartDate">开始日期：</label>
+								<div class="col-md-7">
+									<input type="text" id="queStartDate" class="form-control"/>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-5 control-label" for="queEndDate">结束日期：</label>
+								<div class="col-md-7">
+									<input type="text" id="queEndDate" class="form-control"/>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="queStuNo">学号：</label>
+								<div class="col-md-7">
+									<input type="number" id="queStuNo" class="form-control"/>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="queStuName">姓名：</label>
+								<div class="col-md-7">
+									<input type="text" id="queStuName" class="form-control"/>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="queClassSelcet">班级：</label>
+								<div class="col-md-7">
+									<select id="queClassSelcet" class="form-control">
+										<option value="0">班级</option>
+									</select>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="queClockStatus">状态：</label>
+								<div class="col-md-7">
+									<select id="queClockStatus" class="form-control">
+										<option value="">全部</option>
+										<option value="1">入校</option>
+										<option value="2">离校</option>
+										<option value="3">上车</option>
+										<option value="4">下车</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group">
+								<div class="col-md-4">
+									<a id="btnSearch" type="button" class="btn btn-sm btn-primary"
+										onclick="searchData()">搜索</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</form>
+				<!-- 表格列表主窗体 -->
+				<!-- 表格内容 -->
+				<table id="tableClock">
+				</table>
+			</div>
+		</div>
+		<!-- 面板 END -->
+	</div>
+	<!--放大图的bigImgModal-->
+	<div class="modal fade bs-example-modal-lg text-center" id="bigImgModal"
+		tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel"
+		data-backdrop="true" aria-hidden="true">
+		<div class="modal-dialog modal-lg" style="display: inline-block; width: auto;">
+			<div class="modal-content">
+				<img onerror="this.src='<%=basePath%>/img/bg.png'" src=""/>
+			</div>
+		</div>
+	</div>
+
+	<!--Modal ends here--->
+	<!-- 全局js -->
+	<script src="<%=basePath%>/js/jquery-3.2.1.min.js?v=3.2.1"></script>
+	<script src="<%=basePath%>/js/bootstrap.min.js?v=3.3.7"></script>
+	<!-- 兼容ie9及以下json -->
+	<script src="<%=basePath%>/js/json2.js"></script>
+	<!-- util -->
+	<script src="<%=basePath%>/js/common/util.js"></script>
+	<script src="<%=basePath%>/js/common/util-table.js"></script>
+	<!-- 表格js -->
+	<script src="<%=basePath%>/js/plugins/bootstraptable/bootstrap-table.min.js"></script>
+	<script src="<%=basePath%>/js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+	<!-- 下拉多选 -->
+	<script src="<%=basePath%>/js/plugins/multiple-select/bootstrap-multiselect.js"></script>
+	<!-- 日期选择 -->
+	<script src="<%=basePath%>/js/plugins/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+	<script src="<%=basePath%>/js/plugins/datetimepicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+	<script type="text/javascript" src="clocklist.js"></script>
+	<script src="<%=basePath%>/js/common/role-handler.js"></script>
+</body>
+</html>

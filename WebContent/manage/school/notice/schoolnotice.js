@@ -1,0 +1,370 @@
+var typeId = 1;
+var rootPath = util.getRootPath();
+
+var table = $('#tableSchoolNotice');
+    	
+//查询条件：开始日期
+$('#startDate').datetimepicker({
+    format: 'yyyy-mm-dd', //日期格式
+    language: 'zh-CN', // 国际化 为中文
+    startDate: "2013-02-14 10:00", //开始日期格式
+    minView: 2, // 精确到2天
+    todayBtn: true, //显示当天日期
+    autoclose: true //选择日期后自动关闭 
+});
+
+//查询条件： 结束日期
+$('#endDate').datetimepicker({
+    format: 'yyyy-mm-dd', //日期格式
+    language: 'zh-CN', // 国际化 为中文
+    startDate: "2013-02-14 10:00", //开始日期格式
+    minView: 2, // 精确到2天
+    todayBtn: true, //显示当天日期
+    autoclose: true //选择日期后自动关闭 
+});
+    	
+$(function(){
+	//初始化table信息
+	tableInit();
+});
+    	
+//table 信息初始化
+function tableInit(){
+   table.bootstrapTable({
+        url:rootPath+'/noticeServlet?optFlag=query',//远程请求地址
+        method:'post',//请求方式
+        type: 'json', //数据类型 
+        contentType: "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+        striped: true,      //是否显示行间隔色
+        toolbar: "#toolbar",  //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+        cache: false,      //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+        sortable: false,      //是否启用排序
+        pagination: true,     //是否显示分页（*）
+        pageNumber:1,      //初始化加载第一页，默认第一页
+        pageSize: 10,      //每页的记录行数（*）
+        pageList: [10, 25, 50],  //可供选择的每页的行数（*）
+        sidePagination: "server",   //分页方式：client客户端分页，server服务端分页（*）
+        clickToSelect: true,    //是否启用点击选中行
+        uniqueId:'NOTICEID',	//每一行的标识（要具有唯一性）
+        queryParams: queryParams, //定义请求参数
+        columns: [
+            //field对应返回数据中的字段
+            {field:'NEWSTITLE', title:'消息标题'},
+            {field:'CONTENT', title: '消息内容',width:'30%',
+            	/*formatter:function (value, row, index) {
+            		if(util.text.isEmpty(value)){
+            			return value;
+            		}
+            		if(value.length > 50){
+            			var subs = value.substring(0,50)+'...';
+            			return '<p title="'+value+'">'+subs+'</p>';
+            		}
+            		return value;
+            	}*/
+            },
+            {field:'USERNAME', title: '发布人'},
+            {field: 'CRETIME', title: '发布时间',
+				formatter:function (value, row, index){
+					var time = value.replace('T',' ');
+					return time;
+				}
+            },
+            {title:'操作',align:'center',
+                formatter:function (value, row, index) {
+					//获取当前row内容
+                    var id = row.NOTICEID;
+                    return [
+                            '<a type="button" class="btn btn-primary shiny btn-xs purple edit-role" style="display: none;" data-id="'+id+'" data-toggle="modal" data-target="#addModal"><i class="fa fa-edit"></i>&nbsp;编辑</a>&nbsp',
+                    		'<a type="button" class="btn btn-info shiny btn-xs purple" data-id="'+id+'" data-toggle="modal" data-target="#detailModal"><i class="fa fa-eye"></i>&nbsp;查看</a>&nbsp',
+                            '<a type="button" class="btn btn-danger shiny btn-xs purple delete-role"  style="display: none;" onclick="confirmDeleteModal('+id+')" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i>&nbsp;删除</a>&nbsp'
+                        ].join(' ');
+                }
+            }
+        ],
+        onClickRow:function(row,ele,fileid){//table选中行设置背景色
+        	$(".info").removeClass("info");
+        	$(ele).addClass("info");
+        },
+		onLoadSuccess:function(data){
+        	roleUtil.roleHandler();
+        }
+    });
+};
+
+//定义请求传参集合 ,学校通知类型为1
+var searchData = {};
+//给请求参数赋值
+function queryParams(params){
+	params.typeId = typeId;
+	params.startDate = searchData.startDate;
+	params.endDate = searchData.endDate;
+	params.keyword = searchData.keyword;
+	return params;
+};
+        
+// 查询条件参数赋值
+function queryData() {
+	searchData.startDate = $('#startDate').val();
+	searchData.endDate = $('#endDate').val();
+	searchData.keyword = $('#keyword').val();
+	console.info("satrt:" + $('#startDate').val());
+	table.bootstrapTable('destroy');
+	// 重新创建表格 用于重新加载数据
+	tableInit();
+};
+        
+/* 表单验证 */
+$('#addForm').bootstrapValidator({
+	fields : {
+		title : {
+			validators : {
+				notEmpty : {
+					message : '请填写标题'
+				}
+			}
+		},content : {
+			validators : {
+				notEmpty : {
+					message : '请填写内容'
+				}
+			}
+		}
+	},
+	excluded: [':disabled']
+});
+
+// 弹出modal时根据flag标记判断是否做新增或是修改操作
+$('#addModal').on('show.bs.modal', function(event){
+	var button = $(event.relatedTarget); //获取触发事件目标按钮
+	var btnSave = $('#btnSave'),id = button.data('id');
+	btnSave.removeAttr('onclick');
+	$('#addForm')[0].reset();
+	var isAdd = util.text.isEmpty(id);
+	$(this).find('.modal-title').text(isAdd ? '新增学校通知':'修改学校通知');// 设置medal标题
+	
+	if(isAdd){//新增操作
+		$('#uploadImgDiv').show();
+		//文件上传初始化
+		$('#addImgs').fileinput('destroy').fileinput({
+			language : 'zh', // 设置语言
+			uploadUrl : rootPath+'/imgUploadHandler?optFlag=notice&type='+typeId, // 上传的地址
+			uploadAsync:false,//是否异步上传（异步为一张一张上传）
+			showPreview : true, // 是否显示预览
+			showBrowse : false,//显示浏览图片按钮
+			showUpload : false, // 是否显示上传按钮
+			showRemove : false, // 显示移除按钮
+			showCaption : false,// 是否显示标题
+			showCancel : true,
+			maxFileCount : 9,/* 允许最大上传数，可以多个，当前设置9个 */
+			msgFilesTooMany : "最多只能上传9张图片",
+			dropZoneTitle : "可拖拽图片文件添加",
+			dropZoneClickTitle : "（或点击添加图片）",
+			browseOnZoneClick : true,
+			fileActionSettings : {// 上传图片动作
+				showUpload : false, // 上传
+				showZoom : false, // 预览
+				showDrag : false // 拖拽
+			},
+			allowedFileExtensions : [ 'jpg', 'png', 'jpeg' ],// 上传文件格式
+			overwriteInitial : false,
+			maxFileSize : 10240, // 上传文件大小
+			maxFilesNum : 9, // 上传文件最大个数
+			msgFilesTooMany : "最大只能上传9张图片", // 上传文件超过最大值提示
+			removeFromPreviewOnError : false,
+			slugCallback : function(filename) {// 处理空格
+				return filename.replace('(', '_').replace(']', '_');
+			}
+		});
+	}else{//修改操作
+		$('#uploadImgDiv').hide();
+		//获取UniqueId标识的行数据
+		var row = table.bootstrapTable('getRowByUniqueId', id);
+		$('#newsTitle').val(row.NEWSTITLE);
+		$('#newsContent').val(row.CONTENT);
+	}
+	//添加编辑事件
+	btnSave.attr('onclick','addNotice('+id+')');
+});
+
+$('#addModal').on("hidden.bs.modal", function() {
+	$('#uploadImgId').val("上传图片");
+	$('#selectImgDiv').hide();
+	$('#addForm').bootstrapValidator('resetForm', true);  //重置验证
+});
+
+$('#addImgs').on('filebatchuploadsuccess',function(event, data, previewId, index){
+	if(data.response){
+		var imgUrl = '';
+		$.each(data.response,function (index,image){
+			imgUrl += '&imgUrl='+image.filePath;
+			console.info(image.filePath);
+		});
+		sendNotice(imgUrl);
+	}
+});
+
+//新增教师通知
+function addNotice(id) {
+	var $form = $('#addForm');
+	var valid = $form.data('bootstrapValidator');
+	valid.validate();  
+	if(valid.isValid()){
+		var isAdd = util.text.isEmpty(id);
+		if(isAdd){			
+			var imgCount = $('#addImgs').fileinput('getFilesCount');
+			if(imgCount===0){
+				sendNotice('');
+			}else if (imgCount>0) {
+				$('#addImgs').fileinput('upload');
+			}
+		}else{
+			editNotice(id);
+		}
+	}
+};
+
+function sendNotice(imgUrl){
+	$.ajax({
+		url : rootPath + '/noticeServlet?optFlag=add',
+		data : $('#addForm').serialize() + "&typeId=" + typeId + imgUrl,
+		dataType:'json',
+		type:'post',
+		success : function(data) {
+			if (data.result == 'ok') {
+				toastr.success('新增成功','提示');
+				// 请求成功（这里是添加数据成功）提示且刷新数据
+				table.bootstrapTable('refresh');// 刷新表格
+			} else {
+				// 失败
+				toastr.error('新增失败！请稍后再试','提示');
+			}
+		}
+	});
+	$('#addModal').modal('hide');
+};
+
+function editNotice(id){
+	$.ajax({
+		url : rootPath + '/noticeServlet?optFlag=edit',
+		data : $('#addForm').serialize() + "&typeId=" + typeId + "&id="+id,
+		dataType:'json',
+		type:'post',
+		success : function(data) {
+			if (data.result == 'ok') {
+				toastr.success('修改成功','提示');
+				// 请求成功（这里是添加数据成功）提示且刷新数据
+				table.bootstrapTable('refresh');// 刷新表格
+			} else {
+				// 失败
+				toastr.error('修改失败！请稍后再试','提示');
+			}
+		}
+	});
+	$('#addModal').modal('hide');
+};
+        
+
+
+/* 点击图片上传 显示或隐藏 fileinput 组件 */
+function add_img(){
+	var uploadImgId = $('#uploadImgId');
+	var selectImgDiv = $('#selectImgDiv');
+	$('#addImgs').fileinput('clear');
+	if(selectImgDiv.is(":hidden")){
+		uploadImgId.val("隐藏图片");
+		selectImgDiv.show();
+	}else{
+		uploadImgId.val("上传图片");
+		selectImgDiv.hide();
+	}
+};
+        
+// 学校通知详情
+$('#detailModal').on('show.bs.modal', function(event) {
+	var button = $(event.relatedTarget); // Button that triggered the modal
+	var id = button.data('id'); // Extract info from data-* attributes
+	//获取UniqueId标识的行数据
+	var row = table.bootstrapTable('getRowByUniqueId', id);
+
+	//填充input 内容 
+	$(".notice-title").val(row.NEWSTITLE);
+	$(".issuer").val(row.USERNAME);
+	$(".release-time").val(row.CRETIME.replace('T', ' '));
+	$(".notice-content").val(row.CONTENT);
+	
+	if(row.data!=undefined && row.data != null && row.data.length !== 0){
+		var imgData = [];
+		$.each(row.data,function(index,img){
+			imgData.push(img.ATTACHMENTURL);
+		});
+		$('#detailImgDiv').show();
+		$('#detailImgs').fileinput('destroy').fileinput({
+			language : 'zh', // 设置语言
+			showPreview : true, // 是否显示预览
+			showBrowse : false,//显示浏览图片按钮
+			showUpload : false, // 是否显示上传按钮
+			showRemove : false, // 显示移除按钮
+			showCaption : false,// 是否显示标题
+			showCancel : false,
+			showClose:false,
+			browseOnZoneClick : false,
+			fileActionSettings : {// 上传图片动作
+				showUpload : false, // 上传
+				showZoom : true, // 预览
+				showDrag : false // 拖拽
+			},
+			initialPreview: imgData,
+	        initialPreviewAsData: true, // identify if you are sending preview data only and not the raw markup
+	        initialPreviewFileType: 'image', // image is the default and can be overridden in config below
+			overwriteInitial : false,
+			removeFromPreviewOnError : false,
+			slugCallback : function(filename) {// 处理空格
+				return filename.replace('(', '_').replace(']', '_');
+			},
+			resizeImage: true,
+		    maxImageWidth: 100,
+		    maxImageHeight: 100,
+		    resizePreference: 'width'
+			/*previewTemplates:{
+				image: '<div class="file-preview-frame" id="{previewId}" data-fileindex="{fileindex}" data-template="{template}" style="width:100px;height:100px;">' +
+		        '   <div class="kv-file-content">' +
+		        '    <a href="{data}" title="点击看大图" target="_black">   <img src="{data}" onerror="this.src=\''+rootPath+'/img/no_photo_s.png\'" " class="kv-preview-data file-preview-image" title="{caption}" alt="{caption}" style="width:100px;height:100px;"></a>' +
+		        '   </div>' +
+		        '</div>'
+			}*/
+		});
+	}
+});
+
+$('#detailModal').on("hidden.bs.modal", function() {
+	$('#detailImgDiv').hide();
+});
+
+/*table 删除按钮*/
+function confirmDeleteModal(id){
+	var btnDel = $('#btnDel');
+	btnDel.removeAttr("onclick");
+	btnDel.attr('onclick', 'deleteData(' + id + ')');
+};     
+        
+/*modal 确认删除按钮*/
+function deleteData(id) {
+	$.ajax({
+		url : rootPath+"/noticeServlet?optFlag=delete",
+		data : {
+			"noticeId" : id,
+			"typeId" : typeId
+		},
+		dataType:'json',
+		success : function(data) {
+			if(data.result == "ok"){
+				toastr.success('删除成功', '提示');
+				table.bootstrapTable('refresh'); //刷新表格
+			}else{
+				toastr.error('删除失败!请稍后再试 ', '提示');
+			}
+		}
+	});
+};
+        
+        

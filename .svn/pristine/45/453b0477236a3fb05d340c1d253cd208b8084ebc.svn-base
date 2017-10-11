@@ -1,0 +1,125 @@
+package com.hinear.hxt.servlet.school;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.hinear.hxt.entity.PhotoAblumInfo;
+import com.hinear.hxt.entity.UserInfo;
+import com.hinear.hxt.util.EmptyUtils;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+import com.hinear.hxt.util.TransformUtils;
+
+/**
+ * @author szs
+ * @time 2017年7月17日 上午10:57:21
+ * @version 1.0
+ * 描述：学校相册初始化servlet，相册管理 servlet,分别为学校相册和班级相册
+ */
+
+
+@WebServlet("/schoolAblumServlet")
+public class SchoolAblumServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String optFlag = request.getParameter("optFlag"); //操作标识
+		String result = null; //response 返回结果
+		String albumId = null; //相册ID
+		String albumDesc = null; //相册描述
+		String photoId = null; //照片ID
+		
+		HttpSession session = request.getSession();
+		UserInfo userInfo = (UserInfo) session.getAttribute("userInfo"); //获取userBean
+		int sid = userInfo.getSID();//获取学校ID
+		int userId = userInfo.getUSERID();//用户ID
+//		int classesId = userInfo.getCLASSESID();//班级ID
+		Map<String, String> map = new HashMap<String, String>();
+		
+		int limit = TransformUtils.transformInt( request.getParameter("limit"));
+		int offset = TransformUtils.transformInt(request.getParameter("offset"));
+		System.out.println("limit="+limit + " offset="+offset);
+		
+		int pageSize = 10000;
+		//当前页第一条数据下标索引，0标识 重第一条数据开始
+		int pageIndex = 0;
+		if("init".equals(optFlag)){//相册初始化
+			System.out.println("进入初始化操作");
+			//每页显示条数
+			
+			map.put("PageSize", pageSize+"");
+			map.put("PageIndex", pageIndex+"");
+			map.put("CID", "-1"); //校园相册的班级ID必须为-1
+			if(!EmptyUtils.stringIsEmpty(String.valueOf(sid))){
+				map.put("SID", sid+"");
+			}
+			if(!EmptyUtils.stringIsEmpty(String.valueOf(userId))){
+				map.put("UserID", userId+"");
+			}
+			result = HttpUtils.getInstance().get("04", map);
+//			response.getWriter().print(result);
+		}else if("add".equals(optFlag)){ //创建相册
+			System.out.println("创建操作");
+			//04F  Notices-->json
+			albumDesc = request.getParameter("albumDesc");
+			System.out.println("albumDesc="+albumDesc);
+			PhotoAblumInfo albumInfo = new PhotoAblumInfo();
+			albumInfo.setSID(sid);
+			albumInfo.setCREUSER(userId+""); //创建人
+			albumInfo.setALBUMDESC(albumDesc);
+			
+			if(albumDesc != null){//相册描述内容不为空
+				String albumInfoJson = JSONUtil.toJSON(albumInfo);
+//				System.out.println("albumInfoJso结果："+albumInfoJson);
+				map.put("Notices", albumInfoJson); 
+				result = HttpUtils.getInstance().get("04F", map);  //创建相册接口
+//				response.getWriter().print(result);
+			}
+		}else if("editAblum".equals(optFlag)){//修改相册
+			albumId = request.getParameter("albumId");  //
+			albumDesc = request.getParameter("albumDesc");
+			map.put("ID", albumId);
+			map.put("ALBUMDESC", albumDesc);
+			result = HttpUtils.getInstance().get("04B", map);
+		}else if("delAblum".equals(optFlag)){  //删除相册
+			albumId = request.getParameter("albumId");
+			map.put("ID", albumId);
+			result = HttpUtils.getInstance().get("04A", map);
+		}else if("initPhoto".equals(optFlag)){//初始化照片集合
+			albumId = request.getParameter("albumId");
+			map.put("PageSize", pageSize+"");
+			map.put("PageIndex", pageIndex+"");
+			map.put("ALBUMID", albumId);
+			result = HttpUtils.getInstance().get("04I", map);
+//			response.getWriter().print(result);
+		}else if("editPhoto".equals(optFlag)){ //修改照片描述 TODO... 还没修改照片接口
+			photoId = request.getParameter("photoId");
+			String photoDesc = request.getParameter("photoDesc");
+			//TODO...暂时保留
+			
+		}else if("delPhoto".equals(optFlag)){ //删除照片
+			photoId = request.getParameter("photoId");
+			map.put("ID", photoId);
+			result = HttpUtils.getInstance().get("04C", map);
+		}else if("uploadPhoto".equals(optFlag)){//上传照片
+			System.out.println("上传照片方法、、、");
+		}
+		
+		response.getWriter().print(result);
+	}
+
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

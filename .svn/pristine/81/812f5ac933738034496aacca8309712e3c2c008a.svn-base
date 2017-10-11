@@ -1,0 +1,224 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>个人资料</title>
+<link rel="shortcut icon" href="../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+<link href="../../css/plugins/upload/fileinput.min.css" rel="stylesheet">
+
+</head>
+
+<body class="gray-bg">
+	<div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h3>个人资料</h3>
+						<div class="ibox-tools">
+						</div>
+					</div>
+					<div class="ibox-content" id="myselfCenterId">
+						<form action="" class="form-horizontal mt" id="myselfForm" enctype="multipart/form-data" method="post">
+							<div class="form-group">
+								<label class="col-sm-3 control-label">姓名：</label>
+								<div class="col-sm-3">
+									<input id="uName" name="name" minlength="2" type="text"
+										class="form-control" required="required" aria-required="true" readonly="readonly">
+								</div>
+								<button type="button" class="btn btn-sm btn-primary" id="editId" onclick="editEventt()"><i class="fa fa-edit"></i><span>编辑</span></button>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-3 control-label">电话：</label>
+								<div class="col-sm-3">
+									<input id="uPhone" name="phone" minlength="9" type="text" class="form-control" required="" arial-required="true" readonly="readonly">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-3 control-label">邮箱：</label>
+								<div class="col-sm-3">
+									<input id="uEmail" name="email" minlength="" type="email"
+										class="form-control" required="" aria-required="true" readonly="readonly">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-3 control-label">签名：</label>
+								<div class="col-sm-3">
+									<input id="uSignature" name="signature" minlength="" type="text"
+										class="form-control" aria-required="true" readonly="readonly">
+								</div>
+							</div>
+							<!-- 用户头像上传 -->
+							<div class="form-group">
+								<label class="col-sm-3 control-label col-sm-offset-0">头像：</label>
+								<div class="col-sm-2">
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									<img id="imgId" onerror="this.src='../../img/user.png'" class="img-circle" style="background-color: white;max-height: 100px;max-width:100px;" alt="用户头像" src="">
+									
+<!-- 									<button type="file" class="btn btn-sm btn-info" id="changeImgId"><i class=""></i><span>更换头像</span></button>	 -->
+								</div>
+								<div class="col-sm-2">
+									<input type="file" id="changeImgId" class="file" value="选择头像">
+								</div>
+							</div>
+							
+							<div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-4">
+                                    <button class="btn btn-primary" type="submit" id="submitId" onclick="saveEvent()">提交</button>
+                                    	&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <button class="btn btn-primary" type="button" id="cancelId" onclick="cancelEvent()">取消</button>
+                                </div>
+                            </div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<!-- 全局js -->
+<script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+<script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+<!-- 兼容ie9及以下 -->
+<script src="../../js/json2.js"></script>
+<!-- Prettyfile实现文件上传 -->
+<script src="../../js/plugins/upload/fileinput.js"></script>
+<script src="../../js/plugins/upload/zh.js"></script>
+
+<!-- js代码 -->
+<script type="text/javascript">
+var userId = '<%=session.getAttribute("userId")%>';
+var userJson;
+
+/* 个人资料页面信息初始化  */	
+ $(document).ready(function() {
+	//初始化页面显示
+	initMethod();
+	
+	$.ajax({
+		url:"../../myselfInitServlet",
+		data:{
+			"userId": userId,
+			"optflag": "init",  // 操作标识
+		},
+		success:function(data){
+// 			console.log(data);
+			var json = $.parseJSON(data);
+// 			console.info(json);
+			if(json != null){ //初始化值
+				userJson = json[0];
+				$("#uName").val(userJson.REALNAME);
+				$("#uPhone").val(userJson.MOBILE);
+				$("#uEmail").val(userJson.EMAIL);
+				$("#uSignature").val(userJson.SIGNATURE);
+				//需要初始化头像值todo...
+				userJson.USERPHOTO;
+				$("#imgId").attr('src', userJson.USERPHOTO);
+			}
+		}
+	});
+	
+});
+
+//个人信息编辑
+ function editEventt(){
+	$("#editId").hide();
+	$("#changeImgId").show();
+	$("#submitId").show();
+	$("#cancelId").show();
+	$('input').removeAttr("readonly"); //设置input为可编辑
+	
+	var imgePath;
+	//初始化fileinput控件（第一次初始化）
+	$('#changeImgId').fileinput({
+		language: 'zh', //设置语言
+		showPreview : false, //是否显示预览
+		showUpload: false, //是否显示上传按钮
+        showRemove : false, //显示移除按钮
+        showCaption: false,//是否显示标题
+        browseClass: "btn btn-info", //按钮样式     
+        allowedFileExtensions : ['jpg', 'png','gif'],//接收的文件后缀
+//         previewFileIcon: "<i class='glyphicon glyphicon-king'></i>", 
+        title: "头像上传",
+        window: true,//默认弹出附件上传窗口
+        uploadAsync: true, // 是否为异步上传
+        
+//         uploadUrl:'http://localhost:8080/hxt/upload/schoolInfo',
+        uploadUrl:'../../uploadPortraitToService', // 自动上传url
+	})
+	.on("filebatchselected", function(event, files) {//多个文件批量上传
+        var uploadfile= $(this).fileinput("upload");
+
+    })
+    .on("fileuploaded", function(event, data) {//单个文件选择成功回调函数
+    	var array = data.response;
+//     	console.dir(array);
+    	imgePath = array[0].imgeUrl;
+    	console.info("imgePath"+imgePath);
+    	//编辑选中图片及时更新头像
+    	// 	var imgePath = "http://localhost:8080/hxt/upload/schoolInfo/gem1.jpg";
+    	$("#imgId").attr('src', imgePath); //选择头像渲染回显
+//         alert('处理成功');
+});
+	
+};
+
+
+//个人信息保存
+var saveEvent = function(){
+	var uName = $("#uName").val();
+	var uPhone = $("#uPhone").val();
+	var uEmail = $("#uEmail").val();
+	var uSignature = $("#uSignature").val();
+	var imgpath = "userimg/gem1.jpg";
+	var uPhoto = $("#imgId")[0].src; 
+	
+	userJson.REALNAME = uName;
+	userJson.MOBILE = uPhone;
+	userJson.EMAIL = uEmail
+	userJson.SIGNATURE = uSignature;
+	userJson.USERPHOTO = imgpath;
+	$.ajax({
+		url:"../../myselfInitServlet",
+		type:"post",
+		dataType:'json',
+		data:{
+			"user": JSON.stringify(userJson),
+			"optflag": "saveEvent",  // 操作标识
+		},
+		success:function(data){
+			//data.result=='ok'
+			console.info(data);
+			console.log("保存成功");
+		}
+	});
+};
+
+//取消操作
+var cancelEvent = function(){
+	initMethod();
+};
+
+//个人信息初始化页面初始化只显示“编辑”按钮 	
+function initMethod(){
+	$("#editId").show();
+	$("#changeImgId").hide();
+	$("#submitId").hide();
+	$("#cancelId").hide();
+	$('input').attr("readonly", "readonly"); //设置input为只读
+	
+};
+
+
+</script>
+</body>
+</html>

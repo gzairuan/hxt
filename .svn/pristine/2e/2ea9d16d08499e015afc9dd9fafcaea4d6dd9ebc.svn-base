@@ -1,0 +1,58 @@
+package com.hinear.hxt.servlet.sys;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.hinear.hxt.util.EmptyUtils;
+import com.hinear.hxt.util.HttpUtils;
+
+/**
+ * 用户管理初始化信息
+ * Servlet implementation class UserInitServlet
+ * @time 2017年6月23日16:07:38
+ * @author szs
+ */
+@WebServlet("/userInitServlet")
+public class UserInitServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		int pageSize = 10;
+		int pageIndex = 0;
+		String limit = request.getParameter("limit");
+		String offset = request.getParameter("offset");
+		if(!EmptyUtils.stringIsEmpty(limit)){
+			pageSize = Integer.parseInt(limit);
+		}
+		if(!EmptyUtils.stringIsEmpty(offset)){
+			pageIndex = Integer.parseInt(offset);
+		}
+		
+		Map<String, String> map = new HashMap<String, String> ();
+		map.put("PageIndex", pageIndex+"");
+		map.put("PageSize", pageSize+"");
+		
+		String jsonData = HttpUtils.getInstance().get("B41", map);
+		System.out.println("后台json数据：" + jsonData);
+		
+		response.setContentType("text/html;charset=utf-8");
+		response.setCharacterEncoding("utf-8");
+		response.getWriter().print(jsonData);
+	}
+
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

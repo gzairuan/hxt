@@ -1,0 +1,411 @@
+/**
+ * desc: 班级管理
+ * date: 2017-8-15
+ * by: szs
+ * 
+ */
+
+var rootPath = util.getRootPath();
+var	clasTable = $('#clasTable'),  //班级table
+	clasmodal = $('#addClasModal'), //班级modal
+	clsForm = $('#clasmodalForm'), //班级form表单
+	ct_table = $('#clasTeachTable'),
+	teachmodal = $('#addTeachModal'),
+	t_table = $('#teachTable');  //班级教师table
+	
+
+$(function(){
+	initClasTable(); //初始化table
+});
+
+//初始化table
+function initClasTable(){
+	clasTable.bootstrapTable({
+         url: rootPath + '/classManageServlet?optFlag=initclas',//远程请求地址
+         method:'post',//请求方式
+         type: 'json', //数据类型 
+         contentType: "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+         striped: true,      //是否显示行间隔色
+         toolbar: "#toolbar",  //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+         cache: false,      //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+         sortable: false,      //是否启用排序
+         pagination: true,     //是否显示分页（*）
+         paginationDetailHAlign: 'right', //分页详情在右边
+         singleSelect: true, //是否单选
+         useCurrentPage: true,
+         dataField: 'rows',
+         pageNumber:1,      //初始化加载第一页，默认第一页
+         pageSize: 10,      //每页的记录行数（*）
+         pageList: [10, 25, 50, 100],  //可供选择的每页的行数（*）
+         sidePagination: "server",   //分页方式：client客户端分页，server服务端分页（*）
+         clickToSelect: true,    //是否启用点击选中行
+         uniqueId:'CLASSESID',	//每一行的标识（要具有唯一性）
+         //queryParams: queryParams, //定义请求参数
+         columns : [
+				//field对应返回数据中的字段
+				{
+					field : 'CLASSESNAME',
+					title : '班级名称',
+					width: '10%',
+					align: 'center'
+				}
+				], 
+         onClickRow:function(row,ele,fileid){//table选中行设置背景色
+         	$(".info").removeClass("info");
+         	$(ele).addClass("info");
+         },
+         onLoadSuccess: function(data){ //加载成功回调函数
+			var row = data.rows[0],
+				sid = row.SID,
+				cid = row.CLASSESID;
+			$('#clasTable').find('tbody tr:eq(0)').addClass('info'); //设置table第一条为选中
+			ct_table.attr({"data-cid":cid}); //把班级ID传递给教师表中
+			initTeacherTable(sid, cid); //初始化教师信息
+         }
+     });
+};
+
+/* modal 弹出时班级新增/修改操作*/
+clasmodal.on('show.bs.modal', function(event){
+	var btn = $(event.relatedTarget), //获取触发目标按钮事件
+	    opt = btn.data("clasopt"),
+	    btnSave = $('#btnSave');
+	if(opt == "add"){//新增操作
+		clsForm[0].reset();//重置表单
+		clasmodal.find('.modal-title').text("新增班级");
+		btnSave.removeAttr('onclick');
+		btnSave.attr('onclick', 'addClass()');
+	}else{//修改操作
+		var clasId = $('#editClas').attr('data-id');//获取班级ID
+		btnSave.removeAttr('onclick');
+		btnSave.attr('onclick', 'editClass('+clasId+')');
+	}
+});
+
+//班级新增方法
+function addClass(){
+	$.ajax({
+		url: rootPath + '/classManageServlet?optFlag=addClas',
+		data: clsForm.serialize(),
+		success: function(data){
+			var json = JSON.parse(data);
+			if(json.result == "ok")
+			   alert("操作成功！");
+			else
+			   alert("操作失败！"); 
+			clasTable.bootstrapTable('refresh');    
+		}
+	});
+	clasmodal.modal('hide');//隐藏modal 
+}
+
+/*CURD 班级按钮事件*/
+$('a[data-clasopt]').click(function(){
+	var opt = $(this).attr('data-clasopt');
+	console.info(opt);
+	var result = getSelectedRow();//获取table选中行
+	if(opt == "edit"){//修改操作
+		if(result == undefined || result == null){//判断table是否选中
+			alert("请选中一行");
+			return false;
+		}else{ //打开编辑modal
+			$('#editClas').attr({"data-target": "#addClasModal", "data-id":result.CLASSESID});//触发弹出modal窗口
+			clasmodal.find('.modal-title').text("修改班级");
+			//赋值
+			$('#classcode').val(result.CLASSESCODE);
+			$('#classname').val(result.CLASSESNAME);
+		}
+	}else if(opt == "delete"){//班级删除操作
+		//获取table选中行
+		console.info(result);
+		if(result == undefined || result == null){//判断table是否选中
+			alert("请选中一行");
+			return false;
+		}else{ //打开删除modal
+			$('#deleteClas').attr({"data-target": "#deleteModal", "data-id":result.CLASSESID});//触发弹出modal窗口，并把班级ID传递给删除modal
+		}
+	}
+	
+});
+
+
+/* 获取table当前选择行 */
+function getSelectedRow(){
+	var index = clasTable.find('tr.info').data('index');
+	var result = clasTable.bootstrapTable('getData')[index];//返回选中行所有数据
+	return result;
+};
+
+/* 班级信息修改 */
+function editClass(clasId){
+	$.ajax({
+		url: rootPath + '/classManageServlet?optFlag=editClas',
+		data: clsForm.serialize() + "&classId="+ clasId,
+		success: function(data){
+			var json = JSON.parse(data);
+			if(json.result == "ok")
+			   alert("操作成功！");
+			else
+			   alert("操作失败！"); 
+			clasTable.bootstrapTable('refresh');    
+		}
+	});
+	clasmodal.modal('hide');//隐藏modal 
+}
+
+/* table 班级删除按钮 */
+$('#deleteModal').on('show.bs.modal', function(event){
+	var btn = $(event.relatedTarget),
+		opt = btn.data("opts"),
+	    btnDel = $('#btnDel');
+	
+	if(opt == "delclass"){//班级执行删除操作
+		var clasId = $('#deleteClas').attr('data-id');//获取班级ID
+		btnDel.removeAttr("onclick");
+		btnDel.attr('onclick', 'deleteData(' + clasId + ')');
+	}else{//执行教师删除操作
+		var cid = ct_table.attr("data-cid"), //获取班级ID
+		result = getTeachSelectedRow(),
+		userid = '';
+	var targtUserId = '';
+	if(result == undefined || result == null){//判断table是否选中
+		alert("请选中一行教师信息");
+		return false;
+	}else{
+		userid = result.USERID; //单个删除
+		/*for(var i = 0; i < result.length; i ++){//实现批量删除 ,暂时屏蔽
+			var tempid = result[i].USERID;
+			userid = userid + tempid + ",";
+		}
+		targtUserId = userid.substring(0, userid.lastIndexOf(","));*/
+	}
+	
+		btnDel.removeAttr("onclick");
+		btnDel.attr('onclick', 'deleteTeacher(' + cid + ',"'+ userid +'")');
+	}
+	debugger;
+	
+});     
+	    
+/* modal 班级确认删除按钮 */
+function deleteData(clasId){
+  $.ajax({
+    url: rootPath + '/classManageServlet',
+    data:{
+        clasId: clasId,
+        optFlag: "delete"
+    },
+    success:function(data){
+    	var json = JSON.parse(data);
+    	if(json.result=="ok")
+    		alert("操作成功！");
+    	else
+    		alert("操作失败！");
+    	
+		clasTable.bootstrapTable('refresh'); //刷新表格
+        }
+    });
+};
+
+
+/* 点击班级table行事件，初始化班级教师table */
+clasTable.on("click-row.bs.table",function(e,row,ele){
+	var sid = row.SID, //学校ID
+	 	cid = row.CLASSESID; //班级ID
+	//初始化teacher table
+	ct_table.bootstrapTable('destroy');//销毁table,解决点击行时销毁之前存在的缓存数据
+	ct_table.attr({"data-cid":cid}); //把班级ID传递给教师表中
+	initTeacherTable(sid, cid);
+});
+
+/* 根据当前行班级ID 来初始化教师信息 */
+function initTeacherTable(sid, cid){
+	ct_table.bootstrapTable({
+         url: rootPath + '/classManageServlet?optFlag=initteacher',//远程请求地址
+         method:'post',//请求方式
+         type: 'json', //数据类型 
+         contentType: "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+         striped: true,      //是否显示行间隔色
+         toolbar: "#toolbar",  //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+         cache: false,      //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+         sortable: false,      //是否启用排序
+         pagination: true,     //是否显示分页（*）
+         paginationDetailHAlign: 'right', //分页详情在右边
+         singleSelect: true,
+         pageNumber:1,      //初始化加载第一页，默认第一页
+         pageSize: 10,      //每页的记录行数（*）
+         pageList: [10, 25, 50, 100],  //可供选择的每页的行数（*）
+         sidePagination: "server",   //分页方式：client客户端分页，server服务端分页（*）
+         clickToSelect: true,    //是否启用点击选中行
+         uniqueId:'CLASSESID',	//每一行的标识（要具有唯一性）
+         queryParams: {    //发送请求时向后台传递参数
+         	"sid": sid,
+         	"cid": cid
+         }, //定义请求参数
+         columns : [
+				//field对应返回数据中的字段
+				{
+					field : 'USERNAME',
+					title : '用户名',
+					width: '10%',
+					align: 'center'
+				},
+				{
+					field : 'REALNAME',
+					title : '真实姓名',
+					width: '10%',
+					align: 'center'
+				}
+			], 
+         onClickRow:function(row,ele,fileid){//table选中行设置背景色
+         	$(".info").removeClass("info");
+         	$(ele).addClass("info");
+         }
+     });
+}
+
+/* 添加教师modal */
+function openModal(){
+	var result = getSelectedRow();//获取table选中行
+	if(result == undefined || result == null){//判断table是否选中
+		alert("请选择添加的班级");
+		return false;
+	}else{
+		$('#addTeachBtn').attr({"data-target": "#addTeachModal"});//触发弹出modal窗口
+	}
+}
+
+/* 添加教师信息 */
+teachmodal.on('show.bs.modal', function(event){
+	var btn = $(event.relatedTarget), //获取触发目标按钮事件
+	    btnTSave = $('#btnTSave');
+	var row = getSelectedRow(),
+		classname = row.CLASSESNAME, //班级名称
+		sid = row.SID, //学校ID
+		cid = row.CLASSESID; //班级ID
+		
+	$('#teachmodalForm')[0].reset(); //重置表单
+	$('#t_classname').val(classname);
+	
+	t_table.bootstrapTable('destroy');//销毁table，避免数据缓存
+	//初始化教师信息
+	initTeachInfo(sid, cid);
+	
+	btnTSave.removeAttr('onclick');
+	btnTSave.attr('onclick', 'addTeach('+ cid +')');  //保存教师
+
+});
+
+/*初始化未选教师信息*/
+function initTeachInfo(sid, cid){
+	t_table.bootstrapTable({
+         url: rootPath + '/classManageServlet?optFlag=initTeachInfo',//远程请求地址
+         method:'post',//请求方式
+         type: 'json', //数据类型 
+         contentType: "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+         striped: true,      //是否显示行间隔色
+         toolbar: "#toolbar",  //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+         cache: false,      //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+         sortable: false,      //是否启用排序
+         pagination: true,     //是否显示分页（*）
+         paginationDetailHAlign: 'right', //分页详情在右边
+//         singleSelect: true, //只允许单选
+         pageNumber:1,      //初始化加载第一页，默认第一页
+         pageSize: 10,      //每页的记录行数（*）
+         pageList: [10, 25, 50, 100],  //可供选择的每页的行数（*）
+         sidePagination: "server",   //分页方式：client客户端分页，server服务端分页（*）
+         clickToSelect: true,    //是否启用点击选中行
+         uniqueId:'CLASSESID',	//每一行的标识（要具有唯一性）
+         queryParams: {    //发送请求时向后台传递参数
+         	"sid": sid,
+         	"cid": cid
+         }, //定义请求参数
+         clickToSelect: false, //点击行时是否选中checkbox
+         columns : [
+				//field对应返回数据中的字段
+         		{
+         			checkbox: true,
+         			width: '1%'
+         		},
+				{
+					field : 'USERNAME',
+					title : '用户名',
+					width: '10%',
+					align: 'center'
+				},
+				{
+					field : 'REALNAME',
+					title : '真实姓名',
+					width: '10%',
+					align: 'center'
+				}
+			], 
+         onClickRow:function(row,ele,fileid){//table选中行设置背景色
+         	$(".info").removeClass("info");
+         	$(ele).addClass("info");
+         }
+     })
+}
+
+/* 添加教师保存方法 */
+function addTeach(cid){
+	var selectRows = t_table.bootstrapTable('getSelections');
+	console.info(selectRows);
+	console.info(selectRows[0].USERID);
+	var userid = '';
+	if(cid != null && selectRows.length > 0){
+		for(var i = 0; i < selectRows.length; i ++){
+			var tempid = selectRows[i].USERID;
+			userid = userid + tempid + ",";
+		}
+		var targtUserId = userid.substring(0, userid.lastIndexOf(","));
+		
+		$.ajax({
+			url: rootPath + '/classManageServlet?optFlag=addteach',
+		    data:{
+		        cid: cid,
+		        userid: targtUserId
+		    },
+		    success:function(data){
+		    	var json = JSON.parse(data);
+		    	if(json.result=="ok")
+		    		alert("操作成功！");
+		    	else
+		    		alert("操作失败！");
+		    	
+				ct_table.bootstrapTable('refresh'); //刷新表格
+		        }
+		});
+	}else{
+		alert("请选择教师");
+	}
+	teachmodal.modal('hide');//隐藏modal 
+}
+
+/* 获取教师 table当前选择行 */
+function getTeachSelectedRow(){
+	var index = ct_table.find('tr.info').data('index');
+	var result = ct_table.bootstrapTable('getData')[index];//返回选中行所有数据
+	return result;
+};
+
+/* 班级教师删除确认 */
+function deleteTeacher(cid, userid){
+  $.ajax({
+    url: rootPath + '/classManageServlet?optFlag=deleteTeach',
+    data:{
+        cid: cid,
+        userid: userid
+    },
+    success:function(data){
+    	var json = JSON.parse(data);
+    	if(json.result=="ok")
+    		alert("操作成功！");
+    	else
+    		alert("操作失败！");
+    	
+		ct_table.bootstrapTable('refresh'); //刷新表格
+        }
+    });
+};
+

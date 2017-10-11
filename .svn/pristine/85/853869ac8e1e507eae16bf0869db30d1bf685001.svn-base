@@ -1,0 +1,449 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>学校管理</title>
+<link rel="shortcut icon" href="../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+<link href="../../css/plugins/bootstraptable/bootstrap-table.css" rel="stylesheet">
+
+<script type="text/css">
+//按钮之间使用竖线分开
+div .btn-separator {  
+  float: left;  
+  height: 3px;  
+  border-left: 1px solid LightGrey;  
+  border-right: 0px solid LightGrey;  
+  margin: 1px 1px;  
+}  
+
+</script>
+</head>
+
+<body class="gray-bg">
+	<div id="wrapper wrapper-content animate fadeInRight">
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h4>学校管理</h4>
+			</div>
+			<div class="ibox-content">
+				<div  id="toolbar">
+					<div></div>
+					<button type="button" id="btnAdd" class="btn btn-primary btn-sm"
+						data-toggle="modal" data-target="#addModal" data-flag="add">
+						<span class="fa  fa-plus" aria-hidden="true">新增</span>
+					</button>
+				
+					<!-- <button type="button" id="btnAdd" class="btn btn-primary btn-sm"
+						data-toggle="modal" data-target="#addModal">
+						<span class="fa  fa-edit" aria-hidden="true">修改</span>
+					</button>
+					<button type="button" id="btnAdd" class="btn btn-primary btn-sm"
+						data-toggle="modal" data-target="#addModal">
+						<span class="fa   fa-close" aria-hidden="true">删除</span>
+					</button> -->
+				</div>
+				
+				<table id="tableSchoolList">
+					
+				</table>
+			</div>
+		</div>
+	</div><!-- end wrapper -->
+	
+	<!-- table 新增 modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog"
+        aria-lablledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <!-- 会话窗口 -->
+            <div class="modal-content">
+                <!-- 模态框内容 -->
+                <div class="modal-header">
+                    <!-- 模态框头 -->
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <!-- 右上角关闭按钮“x” -->
+                    <h5 class="modal-title" id="addModalTitle">学校新增</h5>
+                </div>
+                <div class="modal-body">
+					<!-- 模态框主题内容 -->
+					<form id="addForm" class="form-horizontal">
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">所属区域:</label>
+							<div class="col-md-5">
+								<input id="domainName" name="domainName"
+									class="form-control input-md" required="" type="text">
+								<span class="help-block"></span>
+							</div>
+							<font color="red">*</font>
+						</div>
+						<!-- Text input-->
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">学校名称:</label>
+							<div class="col-md-5">
+								<input id="schoolName" name="schoolName"
+									class="form-control input-md" required="required" type="text">
+								<span class="help-block required"></span>
+							</div>
+							<font color="red">*</font>
+						</div>
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">学校地址：</label>
+							<div class="col-md-5">
+								<input id="schoolAddress" name="schoolAddress"
+									class="form-control input-md" required="required" type="text">
+								<span class="help-block"> </span>
+							</div>
+							<font color="red">*</font>
+						</div>
+						<!-- Text input-->
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">联系人:</label>
+							<div class="col-md-5">
+								<input id="linkName" name="linkName"
+									class="form-control input-md" required="required" type="text">
+								<span class="help-block"> </span>
+							</div>
+							<font color="red">*</font>
+						</div>
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">联系号码:</label>
+							<div class="col-md-5">
+								<input id="mobile" name="mobile"
+									class="form-control input-md" required="required" type="text">
+								<span class="help-block"> </span>
+							</div>
+							<font color="red">*</font>
+						</div>
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">备注:</label>
+							<div class="col-md-5">
+								<textarea name="school.remark" class="form-control" id="remarkId"
+									rows="4" placeholder="请输入内容"></textarea>
+							</div>
+						</div>
+					</form>
+				</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="btnSave" onclick="addSchoolNotice()">保存</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div><!-- end addModal -->
+    
+    <!-- table 修改 modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" role="dialog"
+        aria-lablledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <!-- 会话窗口 -->
+            <div class="modal-content">
+                <!-- 模态框内容 -->
+                <div class="modal-header">
+                    <!-- 模态框头 -->
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <!-- 右上角关闭按钮“x” -->
+                    <h5 class="modal-title" id="addModalTitle">学校新增</h5>
+                </div>
+                <div class="modal-body">
+					<!-- 模态框主题内容 -->
+					<form id="addForm" class="form-horizontal">
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">所属区域:</label>
+							<div class="col-md-5">
+								<input id="textinput" name="textinput"
+									class="form-control input-md" required="" type="text">
+								<span class="help-block"></span>
+							</div>
+							<font color="red">*</font>
+						</div>
+						<!-- Text input-->
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">学校名称:</label>
+							<div class="col-md-5">
+								<input id="textinput" name="textinput"
+									class="form-control input-md" required="required" type="text">
+								<span class="help-block required"></span>
+							</div>
+							<font color="red">*</font>
+						</div>
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">学校地址：</label>
+							<div class="col-md-5">
+								<input id="textinput" name="textinput"
+									class="form-control input-md" required="required" type="text">
+								<span class="help-block"> </span>
+							</div>
+							<font color="red">*</font>
+						</div>
+						<!-- Text input-->
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">联系人:</label>
+							<div class="col-md-5">
+								<input id="textinput" name="textinput"
+									class="form-control input-md" required="required" type="text">
+								<span class="help-block"> </span>
+							</div>
+							<font color="red">*</font>
+						</div>
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">联系号码:</label>
+							<div class="col-md-5">
+								<input id="textinput" name="textinput"
+									class="form-control input-md" required="required" type="text">
+								<span class="help-block"> </span>
+							</div>
+							<font color="red">*</font>
+						</div>
+						<div class="form-group">
+							<label class="col-md-4 control-label" for="textinput">备注:</label>
+							<div class="col-md-5">
+								<!-- <input id="textinput" name="textinput"
+								class="form-control input-md" type="text"> <span
+								class="help-block"> </span> -->
+								<textarea name="content" class="form-control" id="remarkId"
+									rows="4" placeholder="请输入内容"></textarea>
+							</div>
+						</div>
+					</form>
+				</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" onclick="addSchoolNotice()">保存</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div><!-- end editModal -->
+
+	<!-- table 删除modal -->
+    <div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+        aria-labelledby="delModalLabel" data-backdrop="true"
+        aria-hidden="true">
+        <div class="modal-dialog" style="width: 20%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <h5 class="modal-title" id="delModalLabel" style="color: red">删除
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+                </div>
+                <div class="modal-footer">
+                   <!--  <span id='deleteButton'></span> -->
+                    <button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal">确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+
+            </div>
+        </div>
+    </div><!-- end deleteModal -->
+    
+    
+<!-- 全局js -->
+<script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+<script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+<!-- 兼容ie9及以下 -->
+<script src="../../js/json2.js"></script>
+<script src="../../js/plugins/bootstraptable/bootstrap-table.js"></script>
+<script src="../../js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+<!-- js代码 -->
+<script type="text/javascript">
+	var table;
+
+	//初始化table
+	$(function() {
+		table = $('#tableSchoolList')
+				.bootstrapTable(
+						{
+							url : '../../schoolListInitServlet',//远程请求地址
+							method : 'post',//请求方式
+							dataType : 'json',//接收数据类型
+							contentType : "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+							striped : true, //是否显示行间隔色
+							toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+							cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+							sortable : false, //是否启用排序
+							pagination : true, //是否显示分页（*）
+							pageNumber : 1, //初始化加载第一页，默认第一页
+							pageSize : 10, //每页的记录行数（*）
+							pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+							sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+							clickToSelect : true, //是否启用点击选中行
+							uniqueId : 'SID', //每一行的标识（要具有唯一性）
+							queryParams:function(params){ //使用queryParams传递请求参数必须要写上limit和offset参数，否则翻页无效。
+			                	return {
+			                		optFlag : 'init', //操作标记
+			                		limit : params.limit, 
+			                		offset : params.offset
+			                	};
+							},
+							columns : [
+									//field对应返回数据中的字段
+									{
+										field : 'SID',
+										title : '学校ID'
+									},
+									{
+										field : 'DOMAINNAME',
+										title : '区域 '
+									},
+									{
+										field : 'SNAME',
+										title : '学校名称'
+									},
+									{
+										field : 'SADDRESS',
+										title : '学校地址'
+									},
+									{
+										field : 'LINKNAME',
+										title : '联系人'
+									},
+									{
+										field : 'MOBILE',
+										title : '联系电话'
+									},
+									{
+										field : 'CTIME',
+										title : '创建时间',
+										formatter : function(value, row, index) {
+											var time = value.replace('T', ' ');
+											return time;
+										}
+									},
+									{
+										field : 'REMARK',
+										title : '备注',
+									},
+									{
+										title : '操作',
+										align : 'center',
+										width : '7%',
+										formatter : function(value, row, index) {
+											//获取当前row内容
+											var sId = row.SID;
+											var edit = '<a type="button" title="修改" class="btn btn-primary shiny btn-xs purple" data-flag="edit" data-id="'+sId+'" data-toggle="modal" data-target="#addModal"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;';
+											var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple" onclick="confirmDeleteModal('
+													+ sId
+													+ ')" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i></a>';
+											return [ edit, del ].join('');
+										}
+									} ],
+							onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+								$(".info").removeClass("info");
+								$(ele).addClass("info");
+							}
+						});
+	});
+	
+	$(function(){ //隐藏‘备注列’
+		$('#tableSchoolList').bootstrapTable('hideColumn', 'REMARK');
+	});
+	
+	
+	// modal窗口打开的时候执行:新增/修改
+    $('#addModal').on('show.bs.modal', function(event) {
+		var button = $(event.relatedTarget); // 触发事件的按钮 
+		var flag = button.data('flag'); // 获取按钮点击事件传给modal的 data参数标识
+		var add = "add";
+		var btnSave = $('#btnSave');
+		
+		if(flag==add){ //新增
+			$('#addForm')[0].reset();  //清空form 表单
+			//添加保存按钮事件
+			btnSave.removeAttr("onclick");
+			btnSave.attr('onclick', 'addSchoolNotice()');
+		}else{ //修改
+			var sId = button.data('id');
+// 			console.info("flag="+ flag + " sId=="+sId);
+			var modal = $(this); //获取当前的modal\
+			modal.find('.modal-title').text('学校编辑'); //改变modal的title
+			
+			//获取UniqueId标识的行数据
+			var row = table.bootstrapTable('getRowByUniqueId', sId);
+			$('#domainName').val(row.DOMAINNAME);
+			$('#schoolName').val(row.SNAME);
+			$('#schoolAddress').val(row.SADDRESS);
+			$('#linkName').val(row.LINKNAME);
+			$('#mobile').val(row.MOBILE);
+			$('#remarkId').val(row.REMARK);
+			
+			//添加保存按钮事件
+			btnSave.removeAttr("onclick");
+			btnSave.attr('onclick', 'eidtSchool()');
+		}
+	});
+	
+    /* 新增操作 */
+	function addSchool(){
+		var $form = $('#addForm');
+		$.ajax({
+    		url:'../../schoolListInitServlet',
+    		data:$form.serialize()+"&optFlag=add",
+    		success : function(data) {
+    			console.info(data);
+    			var json = JSON.parse(data);
+//     			console.info("json111111="+json);
+    			table.bootstrapTable('refresh');
+    		}
+    	});
+    	$('#addModal').modal('hide');
+	}
+    
+    /* 修改学校信息 */
+	function eidtSchool(){
+		var $form = $('#addForm');
+		$.ajax({
+    		url:'../../schoolListInitServlet',
+    		data:$form.serialize()+"&optFlag=edit",
+    		success : function(data) {
+    			console.info(data);
+    			var json = JSON.parse(data);
+    			console.info("json111111="+json);
+    			table.bootstrapTable('refresh');
+    		}
+    	});
+    	$('#addModal').modal('hide');
+    }
+    
+	/*table 删除按钮*/
+	function confirmDeleteModal(sId) {
+		var btnDel = $('#btnDel');
+		btnDel.removeAttr("onclick");
+		btnDel.attr('onclick', 'deleteData(' + sId + ')');
+	};
+	
+	/*modal 确认删除按钮*/
+	function deleteData(id) {
+		$.ajax({
+			url : "../../schoolListInitServlet",
+			data : {
+				"sId" : id,  //学校ID
+				"optFlag": "delete"
+			},
+			success : function(data) {
+				var json = JSON.parse(data); // 转为json格式
+				var result = json.result;
+				if(result=="fail"){ //如果返回结果为 fail 则删除失败
+					alert("删除失败！");
+				}else{
+					alert("删除失败！");
+				}
+				table.bootstrapTable('refresh'); //刷新表格
+			}
+		});
+	};
+</script>
+</body>
+</html>

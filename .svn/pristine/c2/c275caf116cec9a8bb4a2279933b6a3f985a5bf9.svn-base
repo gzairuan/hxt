@@ -1,0 +1,350 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>分组管理</title>
+<link rel="shortcut icon" href="../../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+<!-- 表格 -->
+<link href="../../css/plugins/bootstraptable/bootstrap-table.min.css" rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<!-- 包装内容 动画 从右方进入 -->
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- 面板 -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h5>分组管理</h5>
+			</div>
+			<div class="ibox-content">
+				<!-- 工具栏toolbar -->
+				<div id="toolbar">
+					<button type="button" class="btn btn-primary btn-sm"
+						data-toggle="modal" data-target="#editModal" data-flag="add" data-title="新增组">
+						<span class="glyphicon glyphicon-plus" aria-hidden="true"> 新增</span>
+					</button>
+					<button type="button" class="btn btn-primary btn-sm"
+						data-toggle="modal" data-target="#deleteModal">
+						<span class="glyphicon glyphicon-remove" aria-hidden="true"> 删除</span>
+					</button>
+				</div>
+				<!-- 表格内容 -->
+				<table id="table">
+				</table>
+			</div>
+		<!-- 面板END -->
+		</div>
+	</div>
+	
+	<!-- table 新增|编辑 modal -->
+	<div class="modal fade" id="editModal" tabindex="-1" role="dialog"
+		aria-lablledby="editModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<!-- 会话窗口 -->
+			<div class="modal-content">
+				<!-- 模态框内容 -->
+				<div class="modal-header">
+					<!-- 模态框头 -->
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<!-- 右上角关闭按钮“x” -->
+					<h5 class="modal-title" id="editModalTitle">新增组</h5>
+				</div>
+				<div class="modal-body">
+					<!-- 模态框主题内容 -->
+					<div class="form-horizontal" role="form">
+						<div class="form-group">
+							<label class="col-md-3 control-label" for="editGroupName">组名称<font color="red">*</font>：</label>
+							<div class="col-md-6">
+								<input type="text" id="editGroupName" class="form-control" required="required"/>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button id="editBtnSave" type="button" class="btn btn-primary">保存</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- table 删除modal -->
+	<div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+		aria-labelledby="delModalLabel" data-backdrop="true"
+		aria-hidden="true">
+		<div class="modal-dialog modal-sm" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<h5 class="modal-title" id="delModalLabel" style="color: red">删除
+					</h5>
+				</div>
+				<div class="modal-body">
+					<p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+				</div>
+				<div class="modal-footer">
+					<!--  <span id='deleteButton'></span> -->
+					<button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	
+	<!-- 全局js -->
+    <script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+    <script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+    <!-- 兼容ie9及以下json -->
+	<script src="../../js/json2.js"></script>
+    <!-- 表格js -->
+	<script src="../../js/plugins/bootstraptable/bootstrap-table.min.js"></script>
+	<script src="../../js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+	<script type="text/javascript">
+		var table = $('#table');
+		var selections = [];//选中的数据id集合数组
+		
+		 //选中事件操作数组  
+	    var union = function(array,ids){  
+	        $.each(ids, function (i, id) {  
+	            if($.inArray(id,array)==-1){  
+	                array[array.length] = id;  
+	            }  
+	             });  
+	            return array;  
+	    };  
+	    //取消选中事件操作数组  
+	    var difference = function(array,ids){  
+	            $.each(ids, function (i, id) {  
+	                 var index = $.inArray(id,array);  
+	                 if(index!=-1){  
+	                     array.splice(index, 1);  
+	                 }  
+	             });  
+	            return array;  
+	    };  
+	    var _ = {"union":union,"difference":difference}; 
+		
+		$(function() {
+			//初始化表格
+			initTable();
+		});
+		
+		//初始化表格
+		function initTable() {
+			table.bootstrapTable({
+				url : '../../groupServlet?optFlag=query',//远程请求地址
+				method : 'get',//请求方式
+				dataType : 'json',//接收数据类型
+				//contentType : "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+				striped : true, //是否显示行间隔色
+				//toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+				cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+				sortable : false, //是否启用排序
+				pagination : true, //是否显示分页（*）
+				pageNumber : 1, //初始化加载第一页，默认第一页
+				pageSize : 10, //每页的记录行数（*）
+				pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+				sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+				clickToSelect : true, //是否启用点击选中行
+				uniqueId : 'GROUP_ID', //每一行的标识（要具有唯一性）
+				//queryParams : queryParams,//请求参数
+				responseHandler:responseHandler,//在渲染页面数据之前执行的方法，翻页需要有多选时此配置必须配置
+				columns : [
+						{
+							field:'state',//当前选择框的状态，多选时必须添加
+							checkbox:true
+						},
+						//field对应返回数据中的字段
+						{
+							field : 'GROUP_NAME',
+							title : '组名',
+							width : '20%'
+						},
+						{
+							field : 'USERNAME',
+							title : '创建人',
+							width : '20%'
+						},
+						{
+							field : 'CREATE_TIME',
+							title : '创建时间',
+							width : '20%',
+							formatter : function(value, row, index) {
+								return getTime(value);
+							}
+						},
+						{
+							field : 'UPDATE_TIME',
+							title : '修改时间',
+							width : '20%',
+							formatter : function(value, row, index) {
+								return getTime(value);
+							}
+						},
+						{									
+							field : 'GROUP_ID',
+							title : '操作',
+							align : 'center',
+							valign : 'center',
+							formatter : function(value, row, index) {
+								//删除html拼接标签 根据 data-xx来传递数据  xx为自己命名的参数
+								var edit = '<a type="button" title="编辑" class="btn btn-info shiny btn-xs purple"'
+									+'data-toggle="modal" data-id="'+value+'" data-title="编辑组" data-flag="edit" data-target="#editModal">'
+									+'<i class="fa fa-edit"></i> 编辑</a>';
+								//删除html拼接标签
+								var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple"'
+									+'data-toggle="modal" data-id="'+value+'" data-target="#deleteModal">'
+									+'<i class="fa fa-trash-o"></i> 删除</a>';
+								//添加拼接标签以join中的字符串分隔开来
+								return [edit,del].join(' ');
+							},
+						} ],
+				onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+					$(".info").removeClass("info");
+					$(ele).addClass("info");
+				}
+			});
+			
+			//绑定表格选中的全部监听事件
+			table.on('check.bs.table check-all.bs.table uncheck.bs.table uncheck-all.bs.table',function(e, rows){
+				var ids = $.map(!$.isArray(rows) ? [rows] : rows,function(row){
+					return row.GROUP_ID;
+				});
+				var func = $.inArray(e.type, ['check','check-all']) > -1 ? 'union':'difference';
+				selections = _[func](selections,ids);
+			});
+		}
+		
+		function responseHandler(res) {
+			$.each(res.rows,function(i, row){
+				row.state = $.inArray(row.GROUP_ID,selections) !== -1;
+			});
+			return res;
+		}
+		
+		
+		function getTime(value) {
+			if(value == undefined || value == null || value == ''){
+				return '';
+			}
+			var time = value.replace('T',' ');
+			return time;
+		}
+		
+		$('#editModal').on('show.bs.modal',function(e){
+			var btn = $(e.relatedTarget), // 触发该对话框的按钮
+				flag = btn.data('flag'),
+			    title = btn.data('title'),//modal标题
+				btnSave = $('#editBtnSave'),
+				gName = $('#editGroupName');
+			
+			$(this).find('.modal-title').text(title);//设置medal标题
+			
+			btnSave.removeAttr('onclick');
+			if(flag === 'add'){
+				gName.val('');
+				btnSave.attr('onclick','addSaveData()');
+			}else if(flag === 'edit'){
+				var id = btn.data('id');
+				//根据id获取该行的数据-->获取UniqueId标识的行数据
+				var row = table.bootstrapTable('getRowByUniqueId', id);
+				gName.val(row.GROUP_NAME);
+				btnSave.attr('onclick','editSaveData("'+id+'")');
+			}
+		});
+		
+		function addSaveData(gName){
+			var gName = $('#editGroupName').val();
+			if(gName==null || gName==''){
+				alert('必填');
+				return;
+			}
+			$.post('../../groupServlet?optFlag=add',{'groupName':gName},function(data){
+				if (data.result == 'ok') {
+					//请求成功（这里是添加数据成功）提示且刷新数据
+					table.bootstrapTable('refresh');//刷新表格
+				} else {
+					//失败
+					alert('新增失败！请稍后再试');
+				}
+				$('#editModal').modal('hide');
+			},'json');
+		};
+		
+		function editSaveData(id){
+			var gName = $('#editGroupName').val();
+			if(gName==null || gName==''){
+				alert('必填');
+				return;
+			}
+			var row = table.bootstrapTable('getRowByUniqueId', id);
+			row.GROUP_NAME = gName;
+			$.post('../../groupServlet?optFlag=edit',{'groupJson':JSON.stringify(row)},function(data){
+				if (data.result == 'ok') {
+					//请求成功（这里是添加数据成功）提示且刷新数据
+					table.bootstrapTable('refresh');//刷新表格
+				} else {
+					//失败
+					alert('新增失败！请稍后再试');
+				}
+				$('#editModal').modal('hide');
+			},'json');
+		};
+		
+		//删除对话框打开监听（也就是打开的时候会被掉用）
+		$('#deleteModal').on('show.bs.modal', function(e) {
+			var btn = $(e.relatedTarget), // 触发该对话框的按钮
+				id = btn.data('id'),
+				$this = $(this),
+				btnDel = $('#btnDel');
+			btnDel.removeAttr('onclick');
+			if(id>0){
+				$this.find('p').html('&nbsp;确认删除该记录？');
+				btnDel.show();
+				btnDel.attr('onclick', 'deleteData("' + id + '")');
+				return;
+			}
+			//获取table选中的数据id集合 ->如果没有数据(返回空数组)提示显示数据，有数据的话显示删除确定按钮
+			if (selections.length == 0) {
+				//空数组 没有选中行
+				$this.find('p').html('&nbsp;请选择记录？');
+				btnDel.hide();//隐藏
+			} else {
+				$this.find('p').html('&nbsp;确认删除选中记录？');
+				var ids = '',len = selections.length;
+				$.each(selections,function (index,id){
+					ids += index===len-1 ? id : id+',';
+				});
+				btnDel.show();
+				btnDel.attr('onclick', 'deleteData("' + ids + '")');
+			}
+		});
+		//删除数据事件
+		function deleteData(ids) {
+			//post请求删除 第二种传参的例子
+			$.get('../../groupServlet?optFlag=delete', {
+				'ids' : ids
+			}, function(data) {
+				if (data.result == 'ok') {
+					//请求成功（这里是删除数据成功）提示且刷新数据
+					table.bootstrapTable('refresh');//刷新表格
+				} else {
+					//失败
+					alert('删除失败！请稍后再试');
+				}
+			}, 'json');
+			$('#deleteModal').modal('hide');
+		}
+	</script>
+</body>
+</html>

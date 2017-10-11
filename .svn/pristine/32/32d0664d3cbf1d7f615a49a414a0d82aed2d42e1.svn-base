@@ -1,0 +1,68 @@
+;
+var rootPath = util.getRootPath();
+// 传给tableUtil的对象
+var tableObj = {
+	table : '#table',
+	toolbar : '#toolbar',
+	url : rootPath + "/cookbookServlet",
+	uniqueId : "FOODID",
+	columns : [
+			{
+				field : 'FOODDATE',
+				title : '日期',
+				formatter : function(value, row, index) {
+					if (util.text.isEmpty(value))
+						return '';
+					return value.substring(0, value.indexOf('T'));
+				}
+			},
+			{
+				field : 'WEEKDAY',
+				title : '星期'
+			},
+			{
+				field : 'FOODDETAIL',
+				title : '早餐'
+			},
+			{
+				field : 'FOODDETAIL2',
+				title : '中餐'
+			},
+			{
+				field : 'operate',
+				title : '操作',
+				align:'center',
+				valign:'center',
+				formatter : function(value, row, index) {
+					// 删除html拼接标签 根据 data-xx来传递数据 xx为自己命名的参数
+					var detail = '<a type="button" title="详情" class="btn btn-info shiny btn-xs purple"'
+							+ 'data-toggle="modal" data-id="'
+							+ row.FOODID
+							+ '" data-target="#detailModal">'
+							+ '<i class="fa fa-eye"></i> 详情</a>';
+					// 编辑html拼接标签
+					var edit = '<a type="button" title="编辑" class="btn btn-primary shiny btn-xs purple btn-edit"'
+							+ 'data-toggle="modal" data-id="'
+							+ row.FOODID
+							+ '" data-target="#editModal">'
+							+ '<i class="fa fa-edit"></i> 编辑</a>';
+					// 删除html拼接标签
+					var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple btn-delete"'
+							+ 'data-toggle="modal" data-id="'
+							+ row.FOODID
+							+ '" data-target="#deleteModal">'
+							+ '<i class="fa fa-trash-o"></i> 删除</a>';
+					// 添加拼接标签以join中的字符串分隔开来
+					return [ detail, edit, del ].join(' ');
+				}
+			} ],
+	queryParams : queryParams
+};
+$(function() {
+	// 初始化table
+	tableUtil.initTable(tableObj);
+});
+
+function queryParams(params) {
+	return params;
+}

@@ -1,0 +1,229 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getContextPath();
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+	name="viewport">
+<title>用户分组</title>
+<link rel="shortcut icon" href="<%=basePath%>/icons/favicon.ico">
+<link href="<%=basePath%>/css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="<%=basePath%>/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="<%=basePath%>/css/animate.css" rel="stylesheet">
+<link href="<%=basePath%>/css/style.css" rel="stylesheet">
+<!-- 表格 -->
+<link href="<%=basePath%>/css/plugins/bootstraptable/bootstrap-table.min.css"
+	rel="stylesheet">
+<!-- 窗口 -->
+<link href="<%=basePath%>/css/plugins/hxt/box.css" rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<!-- 包装内容 动画 从右方进入 -->
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- 面板 -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h5>用户分组</h5>
+			</div>
+			<div class="ibox-context">
+				<div class="form-horizontal" role="form">
+					<div class="box-body">
+						<div class="col-md-6 col-sm-12">
+							<label class="col-md-2 col-sm-2 control-label"
+								for="editGroupName" style="padding-left: 0px;width: auto;">组名：</label>
+							<div class="col-md-4 col-sm-4" style="padding-left: 0px;padding-right: 0px;">
+								<select id="selectGroupId" onchange="changeGroupList()" class="form-control"></select>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="box-body" style="padding-top: 0px;">
+					<div class="col-sm-6">
+						<div class="box box-primary">
+							<div class="box-header">
+								<h5 class="box-title" style="font-size:14px; float: left;">绑定该组的用户</h5>
+								<button onclick="shiftOutGroup()" class="btn btn-sm close fa fa-arrow-right" style="float: right;" title="用户移出教师组"></button>
+							</div>
+							<div class="box-body">
+								<table id="tableYet"></table>
+							</div>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="box box-primary">
+							<div class="box-header">
+								<h5 class="box-title" style="font-size:14px; float: right;">未绑定该组的用户</h5>
+								<button onclick="shiftInGroup()" class="btn btn-sm close fa fa-arrow-left" style="float: left;" title="用户绑定教师组"></button>
+							</div>
+							<div class="box-body">
+								<table id="tableNot"></table>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<!-- 全局js -->
+	<script src="<%=basePath%>/js/jquery-3.2.1.min.js?v=3.2.1"></script>
+	<script src="<%=basePath%>/js/bootstrap.min.js?v=3.3.7"></script>
+	<!-- util -->
+	<script src="<%=basePath%>/js/common/util.js"></script>
+	<script src="<%=basePath%>/js/common/util-table.js"></script>
+	<!-- 表格js -->
+	<script src="<%=basePath%>/js/plugins/bootstraptable/bootstrap-table.min.js"></script>
+	<script
+		src="<%=basePath%>/js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+	<!-- 自定义js -->
+	<script type="text/javascript">
+		var rootPath = util.getRootPath();
+		var tableNot = $('#tableNot');//没有选择分组的用户
+		var tableYet = $('#tableYet');//已经选择分组的用户
+		$(function() {
+			$.post(rootPath+'/groupServlet?optFlag=query', function(data) {
+				var rows = data.rows;
+				var select = $('#selectGroupId');
+				select.empty();
+				$.each(rows, function(index, row) {
+					var option = '<option value="'+row.GROUP_ID+'">'
+							+ row.GROUP_NAME + '</option>';
+					select.append(option);
+				});
+				changeGroupList();
+			}, 'json');
+			initYetTable();
+			initNotTable();
+		});
+		function initYetTable() {
+			tableYet.bootstrapTable({
+				url : rootPath+'/groupServlet?optFlag=yetUser',//远程请求地址
+				method : 'get',//请求方式
+				dataType : 'json',//接收数据类型
+				//contentType : "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+				striped : true, //是否显示行间隔色
+				//toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+				cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+				sortable : false, //是否启用排序
+				pagination : true, //是否显示分页（*）
+				pageNumber : 1, //初始化加载第一页，默认第一页
+				pageSize : 10, //每页的记录行数（*）
+				pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+				sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+				clickToSelect : true, //是否启用点击选中行
+				uniqueId : 'USERID', //每一行的标识（要具有唯一性）
+				queryParams : queryParams,//请求参数
+				//responseHandler:responseHandler,//在渲染页面数据之前执行的方法，有多选时此配置必须配置
+				columns : [ {
+					checkbox : true
+				},
+				//field对应返回数据中的字段
+				{
+					field : 'USERNAME',
+					title : '用户名'
+				}, {
+					field : 'REALNAME',
+					title : '姓名'
+				} ],
+				onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+					$(".info").removeClass("info");
+					$(ele).addClass("info");
+				}
+			});
+		}
+		function initNotTable() {
+			tableNot.bootstrapTable({
+				url : rootPath+'/groupServlet?optFlag=notUser',//远程请求地址
+				method : 'get',//请求方式
+				dataType : 'json',//接收数据类型
+				//contentType : "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+				striped : true, //是否显示行间隔色
+				//toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+				cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+				sortable : false, //是否启用排序
+				pagination : true, //是否显示分页（*）
+				pageNumber : 1, //初始化加载第一页，默认第一页
+				pageSize : 10, //每页的记录行数（*）
+				pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+				sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+				clickToSelect : true, //是否启用点击选中行
+				uniqueId : 'USERID', //每一行的标识（要具有唯一性）
+				queryParams : queryParams,//请求参数
+				//responseHandler:responseHandler,//在渲染页面数据之前执行的方法，有多选时此配置必须配置
+				columns : [ {
+					checkbox : true
+				},
+				//field对应返回数据中的字段
+				{
+					field : 'USERNAME',
+					title : '用户名'
+				}, {
+					field : 'REALNAME',
+					title : '姓名'
+				}, {
+					field : 'USERTYPENAME',
+					title : '用户类型'
+				} ],
+				onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+					$(".info").removeClass("info");
+					$(ele).addClass("info");
+				}
+			});
+		}
+		function queryParams(params) {
+			params.groupId = $('#selectGroupId').val();
+			return params;
+		}
+		function changeGroupList() {
+			//销毁表格 已达到真正的清除当前表格所加载的数据
+			tableYet.bootstrapTable('destroy');
+			tableNot.bootstrapTable('destroy');
+			//重新创建表格 用于重新加载数据
+			initYetTable();
+			initNotTable();
+		}
+		//将用户移出组
+		function shiftOutGroup() {
+			var selections = tableYet.bootstrapTable('getSelections');
+			if(!selections || selections.length === 0){
+				//弹出提示
+				alert("请选择要解绑的用户");
+				return;
+			}
+			var ids = $.map(selections,function(row){
+				return row.USERID;
+			}).join(',');
+			$.post(rootPath+'/groupServlet?optFlag=shiftOut',{'groupId':$('#selectGroupId').val(),'userIds':ids},function(data){
+				if(data.result=='ok'){
+					changeGroupList();
+				}
+			},'json');
+		}
+		//将用户移入组
+		function shiftInGroup() {
+			var selections = tableNot.bootstrapTable('getSelections');
+			if(!selections || selections.length === 0){
+				//弹出提示
+				alert("请选择要绑定该组的用户");
+				return;
+			}
+			var ids = $.map(selections,function(row){
+				return row.USERID;
+			}).join(',');
+			$.post(rootPath+'/groupServlet?optFlag=shiftIn',{'groupId':$('#selectGroupId').val(),'userIds':ids},function(data){
+				if(data.result=='ok'){
+					changeGroupList();
+				}
+			},'json');
+		}
+	</script>
+</body>
+</html>

@@ -1,0 +1,275 @@
+/*
+ * desc: 班级相册管理
+ * date: 2017-8-18
+ * by: szs
+ */
+ 
+/*
+ * desc: 班级相册
+ * date: 2017-8-18
+ * by: szs
+ */
+var rootPath = util.getRootPath(),
+	classId = $('#classId'), //班级select 组件ID
+	createBtn = $('#createBtn'), //创建相册ID
+	uploadBtn = $('#uploadBtn'), //上传照片ID
+	backBtn = $('#backBtn'), //返回ID
+	albumdiv = $('#ablumDivId'),//相册div
+	photodiv = $('#photoDivId');//照片div
+
+$(function(){
+	/* 初始化班级信息 */
+	initClasses(classId);
+	backBtn.hide();
+	photodiv.hide();
+});
+
+/* 初始化班级信息 */
+function initClasses(e,value){
+	if(e && e[0].length==1){
+		//清空所有的option
+		e.empty();
+		e.append('<option value="0" selected>请选择班级</option>');
+		$.ajax({
+			url: rootPath +'/queryClassServlet',
+			success: function(data){
+				if(data != null){
+					var jsonObj=eval("("+data+")");  
+					if(jsonObj.length > 0){
+						$.each(jsonObj, function (i, item) {  //循环json，添加下拉标签
+							var option;
+							if(item.CLASSESID===value){
+								option = '<option value="'+item.CLASSESID+'" selected>'+item.CLASSESNAME+'</option>';
+							}else{
+								option = '<option value="'+item.CLASSESID+'">'+item.CLASSESNAME+'</option>';
+							}
+				            e.append(option); 
+				        });
+					}
+				}
+			}
+		});
+	}
+};
+
+
+/*
+ * 选择班级，初始化班级相册selectedIndex
+ */
+function initClassAlbum(cid){
+	$.ajax({
+		url: rootPath + '/classAlbumServlet?optFlag=initAlbum&cid='+cid,
+		success: function(data){ //异步成功后台返回班级相册数据
+//			if(data != null){
+				var json = JSON.parse(data), //转成json格式
+					rows = json.rows,
+				    domul = $('#albumUlId'),
+				    albumUrl = rootPath + '/img/no_photo_s.png',
+				    photoCount = 0;
+				    
+				console.info(json);
+				domul.empty();
+				
+				$.each(rows, function(i, item){ //遍历json
+					var dsc=item.ALBUMDESC;
+//					if(item.data != null){//判断相册是否为空
+						var dsc=item.ALBUMDESC;
+						
+						if(item.data != null){
+							albumUrl = item.data[0].PHOTOURL; //获取data 第一张图片
+							console.info("albumUrl=="+albumUrl);
+							photoCount = item.data.length;
+						}	
+						var domli = '<li>'+
+										'<div class="post-container">'+
+											'<div class="post-option">' +
+												'<ul class="list-options">'+ //操作 
+													'<li>' +
+														'<a type="button" data-toggle="modal" data-target="#addAlbumModal" data-flag="editAlbum" data-id="'+ item.ALBUMID +'" data-classname="'+ item.CLASSESName +'" data-classid="'+ item.CLASSESID +'" data-albdesc="'+ item.ALBUMDESC +'"> ' +
+																'<i class="fa fa-edit"></i> <span>修改</span></a>' +
+													'</li>'+
+													/*'<li>' +
+														'<a href="#"> <i class="fa  fa-download"></i> <span>移动</span></a>' +
+													'</li>'+*/
+													'<li>' +
+														'<a href="#" data-toggle="modal" data-target="#deleteModal" data-id="'+ item.ALBUMID +'" data-flag="delPhoto">' +
+														'<i class="fa fa-trash-o"></i> <span>删除</span></a>' +
+													'</li>'+
+												'</ul>'+
+											'</div>'+
+											'<div class="thumb">'+
+												'<a href="#">'+
+													'<img src="'+ albumUrl +'" alt="" onerror="this.src=\''+rootPath+'/img/no_photo_s.png\'" onclick="albumPhoto('+ item.ALBUMID +')"/></a>'+
+											'</div>'+
+											'<div class="post-desc">'+
+												'<h2>'+ item.ALBUMDESC +'</h2>'+
+												'<h3>'+ photoCount +'张</h3>'+
+											'</div>'+
+										'</div>'+
+									'</li>' ;
+									
+						domul.append(domli);
+//					}
+				});
+//			}
+		}
+	});
+}
+
+/* 相册照片：点击相册，进入相片列表 */
+function albumPhoto(albumId){
+	albumdiv.hide();
+	photodiv.show();
+	createBtn.hide();
+	uploadBtn.hide();
+	classId.hide();
+	backBtn.show();
+	
+	//初始化相片
+	$.ajax({
+		url: rootPath + '/classAlbumServlet?optFlag=initPhoto&albumId=' + albumId,
+		success: function(data){ //后台返回照片数据
+			if(data != null){
+				var json = JSON.parse(data),
+				 total = json.total;
+				
+				var domul = $('#photoUlId');//照片ul
+				domul.empty();
+				if(total != 0){//照片不为空
+					$.each(json, function(i, item){
+						var photoid = item.PHOTOID,
+							photourl = item.PHOTOURL,
+							photodsc = item.PHOTODESC;
+							
+						var domli = '<li>'+
+										'<div class="post-container">'+
+											'<div class="post-option">' +
+												'<ul class="list-options">'+ //操作 
+													'<li>' +
+														'<a type="button" data-toggle="modal" data-target="#addAlbumModal" data-flag="editPhoto" data-id="'+ photoid +'" data-photodsc="'+ photodsc +'"> ' +
+																'<i class="fa fa-edit"></i> <span>修改</span></a>' +
+													'</li>'+
+													/*'<li>' +
+														'<a href="#"> <i class="fa  fa-download"></i> <span>移动</span></a>' +
+													'</li>'+*/
+													'<li>' +
+														'<a href="#" data-toggle="modal" data-target="#deleteModal" data-id="'+ photoid +'" data-flag="delPhoto">' +
+														'<i class="fa fa-trash-o"></i> <span>删除</span></a>' +
+													'</li>'+
+												'</ul>'+
+											'</div>'+
+											'<div class="thumb">'+
+												'<a href="#">'+
+													'<img src="'+ photourl +'" alt="" onerror="this.src=\'../../../img/no_photo_s.png\'"/></a>'+
+											'</div>'+
+											'<div class="post-desc">'+
+												'<h2>'+ photodsc +'</h2>'+
+												/*'<h3>'+ item.data.length +'张</h3>'+*/
+											'</div>'+
+										'</div>'+
+									'</li>' ;
+						domul.append(domli);
+					});
+				}
+			}
+		}
+	});
+}
+
+//返回按钮
+function backAblum(){
+	backBtn.hide();
+	albumdiv.show();
+	photodiv.hide();
+	classId.show();
+	createBtn.show();
+	uploadBtn.show();
+};
+
+$('#addAlbumModal').on('show.bs.modal', function(event){
+	var btn = $(event.relatedTarget),
+		opt = btn.data("flag"),
+		album_form = $('#ablumFormId'),
+		cid = $('#creatSelectCid'),
+		desc = $('#albumDesc'),
+		btnSave = $('#btnSave'),
+		modal = $(this),
+		classid= '';
+		
+	
+	switch (opt){
+		case "createAlbum": //创建相册
+			modal.find('.modal-title').text("创建班级相册");
+			album_form[0].reset();//重置form表单
+			initClasses(cid); //初始化班级下拉框
+			btnSave.removeAttr('onclick');
+			btnSave.attr('onclick', 'creatClassAblum()');
+		break;
+		
+		case "editAlbum": //修改相册
+			modal.find('.modal-title').text("编辑班级相册");
+			var albumid = btn.data("id"),
+				albumDesc = btn.data("albdesc"),
+				classid = btn.data('classid');
+				initClasses(cid,classid); //初始化班级下拉框
+			cid.attr('disabled', 'disabled');
+			cid.val(classid);
+			desc.val(albumDesc);
+			btnSave.removeAttr('onclick');
+			btnSave.attr('onclick', 'editClassAblum('+ albumid +')');
+		break;
+		
+		default: break;
+	}
+});
+
+//创建班级 相册
+function creatClassAblum(){
+	var cidVal = $('#creatSelectCid').val(),
+		descVal = $('#albumDesc').val();
+	
+	$.ajax({
+		url: rootPath + '/classAlbumServlet?optFlag=creatAlbum',
+		data:{
+			cid: cidVal,
+			desc: descVal
+		},
+		success: function(data){
+			console.info(data);
+			var json = JSON.parse(data);
+				
+		    if(json.result == "ok"){
+		    	alert("操作成功！");
+		    	initClassAlbum(cidVal);
+		    }else{
+		    	alert("操作失败！"); 
+		    }
+		}
+	});
+}
+
+//编辑编辑相册
+function editClassAblum(albumid){
+	var cidVal = $('#creatSelectCid').val(),
+		albumDesc = $('#albumDesc').val();
+	debugger;
+	$.ajax({
+		url: rootPath + '/classAlbumServlet?optFlag=editAlbum',
+		data:{
+			albumid: albumid,
+			albumDesc: albumDesc
+		},
+		success: function(data){
+			console.info(data);
+			var json = JSON.parse(data);
+				
+		    if(json.result == "ok"){
+		    	alert("操作成功！");
+		    	initClassAlbum(cidVal);
+		    }else{
+		    	alert("操作失败！"); 
+		    }
+		}
+	});
+}
+

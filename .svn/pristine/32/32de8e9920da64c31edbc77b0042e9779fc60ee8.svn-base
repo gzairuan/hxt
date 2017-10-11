@@ -1,0 +1,136 @@
+package com.hinear.hxt.entity;
+
+import java.io.Serializable;
+import java.util.List;
+
+public class PhotoAblumInfo implements Serializable {
+	private static final long serialVersionUID = 1L;
+	/*
+	ALBUMID:自增长ID,主键
+	ALBUMDESC： 相册描述
+	CLASSESID:班级ID
+	CLASSESName:班级名称
+	SID:学校ID
+	SName:学校名称
+	CRETIME：创建时间
+	CREUSER：创建人
+	PHOTOID：照片ID
+	PHOTODESC：照片描述
+	PHOTOURL：照片地址
+	ISREPLY：是否回复过
+	UPLOADTIME:上传时间
+	SEECOUNT：观看次数
+	PRAISECOUNT：点赞次数
+	Data:list<job_photo>相册的	*/
+	private String ALBUMDESC;
+	private int CLASSESID;
+	private String CLASSESName;
+	private int SID;
+	private String SName;
+	private String CRETIME;
+	private String CREUSER;
+	private int PHOTOID;
+	private String PHOTODESC;
+	private String PHOTOURL;
+	private int ISREPLY;
+	private String UPLOADTIME;
+	private int SEECOUNT;
+	private int PRAISECOUNT;
+	private List<?> Data;
+	
+	public String getALBUMDESC() {
+		return ALBUMDESC;
+	}
+	public void setALBUMDESC(String aLBUMDESC) {
+		ALBUMDESC = aLBUMDESC;
+	}
+	
+	public int getCLASSESID() {
+		return CLASSESID;
+	}
+	public void setCLASSESID(int cLASSESID) {
+		CLASSESID = cLASSESID;
+	}
+	public String getCLASSESName() {
+		return CLASSESName;
+	}
+	public void setCLASSESName(String cLASSESName) {
+		CLASSESName = cLASSESName;
+	}
+	public int getSID() {
+		return SID;
+	}
+	public void setSID(int sID) {
+		SID = sID;
+	}
+	public String getSName() {
+		return SName;
+	}
+	public void setSName(String sName) {
+		SName = sName;
+	}
+	public String getCRETIME() {
+		return CRETIME;
+	}
+	public void setCRETIME(String cRETIME) {
+		CRETIME = cRETIME;
+	}
+	public String getCREUSER() {
+		return CREUSER;
+	}
+	public void setCREUSER(String cREUSER) {
+		CREUSER = cREUSER;
+	}
+	public int getPHOTOID() {
+		return PHOTOID;
+	}
+	public void setPHOTOID(int pHOTOID) {
+		PHOTOID = pHOTOID;
+	}
+	public String getPHOTODESC() {
+		return PHOTODESC;
+	}
+	public void setPHOTODESC(String pHOTODESC) {
+		PHOTODESC = pHOTODESC;
+	}
+	public String getPHOTOURL() {
+		return PHOTOURL;
+	}
+	public void setPHOTOURL(String pHOTOURL) {
+		PHOTOURL = pHOTOURL;
+	}
+	public int getISREPLY() {
+		return ISREPLY;
+	}
+	public void setISREPLY(int iSREPLY) {
+		ISREPLY = iSREPLY;
+	}
+	public String getUPLOADTIME() {
+		return UPLOADTIME;
+	}
+	public void setUPLOADTIME(String uPLOADTIME) {
+		UPLOADTIME = uPLOADTIME;
+	}
+	public int getSEECOUNT() {
+		return SEECOUNT;
+	}
+	public void setSEECOUNT(int sEECOUNT) {
+		SEECOUNT = sEECOUNT;
+	}
+	public int getPRAISECOUNT() {
+		return PRAISECOUNT;
+	}
+	public void setPRAISECOUNT(int pRAISECOUNT) {
+		PRAISECOUNT = pRAISECOUNT;
+	}
+	public List<?> getData() {
+		return Data;
+	}
+	public void setData(List<?> data) {
+		Data = data;
+	}
+	
+	
+	
+}
+

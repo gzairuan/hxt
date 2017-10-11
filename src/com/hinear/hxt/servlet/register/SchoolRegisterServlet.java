@@ -1,0 +1,63 @@
+package com.hinear.hxt.servlet.register;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.hinear.hxt.entity.SchoolInfo;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+
+/**
+ * 学校注册 SchoolRegisterServlet
+ * @author szs
+ * @time 2017年6月30日 上午9:13:38
+ * @version 1.0
+ * 
+ */
+
+@WebServlet("/schoolRegisterServlet")
+public class SchoolRegisterServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		String sName = request.getParameter("sName");
+		String domainId = request.getParameter("domainId");
+		String domainName = request.getParameter("domainName");
+		String sAddress = request.getParameter("sAddress");
+		String linkName = request.getParameter("linkName");
+		String mobile = request.getParameter("mobile");
+		String remark = request.getParameter("remark");
+		System.out.println("sName="+sName+ " linkName="+ linkName+" remark="+remark);
+		
+		SchoolInfo schoolInfo = new SchoolInfo();
+		schoolInfo.setDOMAINID(Integer.valueOf(domainId));
+//		schoolInfo.setDOMAINNAME(domainName);
+		schoolInfo.setSNAME(sName);
+		schoolInfo.setSADDRESS(sAddress);
+		schoolInfo.setLINKNAME(linkName);
+		schoolInfo.setMOBILE(mobile);
+		schoolInfo.setREMARK(remark);
+		
+		String schoolJson = JSONUtil.toJSON(schoolInfo);
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("SYS_SCHOOL_WAIT", schoolJson);
+		String result = HttpUtils.getInstance().get("B11", map);
+		System.out.println("返回值："+result);
+		response.getWriter().print(result);
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+
+}

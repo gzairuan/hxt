@@ -1,0 +1,45 @@
+package com.hinear.hxt.servlet.sys;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.hinear.hxt.util.HttpUtils;
+
+/**
+ * 
+ * @author szs
+ * @time 2017年7月4日 下午6:13:00
+ * @version 1.0
+ * 描述：用户管理查询下拉框 数据初始化 UserQueryInitServlet
+ */
+@WebServlet("/userQueryInitServlet")
+public class UserQueryInitServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String optFlag = request.getParameter("optFlag");
+		Map<String, String> map = new HashMap<String, String> ();
+		String result = null;
+		if(optFlag.equals("uType")){//用户类型下拉数据初始化
+			result = HttpUtils.getInstance().get("01T", null);
+			
+		}
+		System.out.println("result===" + result);
+		response.getWriter().print(result);;
+	}
+
+	
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+
+}

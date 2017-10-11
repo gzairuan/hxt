@@ -1,0 +1,456 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getContextPath();
+%>    
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>班级通知</title>
+<link rel="shortcut icon" href="<%=basePath%>/icons/favicon.ico"> 
+<link href="<%=basePath%>/css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="<%=basePath%>/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="<%=basePath%>/css/animate.css" rel="stylesheet">
+<link href="<%=basePath%>/css/style.css?v=4.1.0" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/bootstraptable/bootstrap-table.css" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
+
+</head>
+<body class="gray-bg">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- Panel Other -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h5>班级通知</h5>
+			</div>
+			<div class="ibox-content">
+				<div class="example-box" role="form">
+            		<div class="row form-inline margin-bottom-10">
+						<div class="form-group col-md-6">
+							<label for="startDate" class="form-label">开始时间：</label>
+							<input id="startDate" type="text" class="form-control">
+							<label for="endDate" class="form-label">至</label>
+							<input id="endDate" type="text" class="form-control">
+						</div>
+						<div class="form-group col-md-4">
+							<label for="keyword">关键字：</label>
+							<input id="keyword" type="text" class="form-control" placeholder="标题或内容">
+						</div>
+						<div class="form-group col-md-2">
+							<a id="btnSearch" type="button" class="btn btn-sm btn-primary"
+								onclick="queryData()">搜索</a>
+						</div>
+					</div>
+            	</div>
+				<div class="row row-lg">
+					<div class="col-sm-12">
+						<!-- Example Card View -->
+						<div class="example-wrap">
+							<div class="example">
+								<div id="toolbar" class="btn-group">
+									<button id="btn-add" type="button"
+										class="btn btn-sm btn-primary" data-toggle="modal"
+										data-target="#addModal" data-flag="add">
+										<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+									</button>
+<!-- 									<button id="btn-edit" type="button" class="btn btn-sm btn-success"> -->
+<!-- 										<span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>修改 -->
+<!-- 									</button> -->
+								</div>
+								<!-- 表格内容 -->
+								<table id="tableSchoolNotice">
+
+								</table>
+							</div>
+						</div>
+						<!-- End Example Card View -->
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- End Panel Other -->
+	</div>
+
+	<!-- table 新增 modal -->
+	<div class="modal fade" id="addModal" tabindex="-1" role="dialog"
+		aria-lablledby="addModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<!-- 会话窗口 -->
+			<div class="modal-content">
+				<!-- 模态框内容 -->
+				<div class="modal-header">
+					<!-- 模态框头 -->
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<!-- 右上角关闭按钮“x” -->
+					<h5 class="modal-title" id="addModalLabel">新增班级通知</h5>
+				</div>
+				<div class="modal-body">
+					<!-- 模态框主题内容 -->
+					<form id="addForm">
+						<div class="form-group">
+							<label for="add-title" class="control-label">标题：</label> <input
+								name="title" type="text" class="form-control" id="newsTitle"
+								placeholder="请输入标题">
+						</div>
+						<div class="form-group">
+							<label for="add-content" class="control-label">内容：</label>
+							<textarea name="content" class="form-control" id="newsContent"
+								rows="5" placeholder="请输入内容"></textarea>
+						</div>
+
+						<div class="form-group">
+							<label for="file-upload-image" class="control-label fa fa-image">上传图片</label>
+						</div>
+						<div class="form-group" style="display: none">
+							<input class="input-file uniform_on" id="file-upload-image"
+								name="file-upload-image" type="file">
+						</div>
+					</form>
+				</div>
+
+				<div class="modal-footer">
+					<button id="btnSave" type="button" class="btn btn-primary"
+						onclick="addClassNotice()">发布</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+<!-- table 详情 modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1" role="dialog"
+        aria-lablledby="detailModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <!-- 回话窗口 -->
+            <div class="modal-content">
+                <!-- 模态框内容 -->
+                <div class="modal-header">
+                    <!-- 模态框头 -->
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <!-- 右上角关闭按钮“x” -->
+                    <h5 class="modal-title" id="detailModalLabel">通知详情</h5>
+                </div>
+                <div class="modal-body">
+                    <!-- 模态框主题内容 -->
+                    <div class="form-group">
+                        <label class="control-label" for="title">通知标题</label>
+                        <input class="form-control notice-title" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">发布人</label>
+                        <input class="form-control issuer" name="name" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">发布日期</label>
+                        <input class="form-control release-time" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">通知内容</label>
+                        <textarea rows="5" class="form-control notice-content" readonly></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+	<!-- table 删除modal -->
+	<div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+		aria-labelledby="delModalLabel" data-backdrop="true"
+		aria-hidden="true">
+		<div class="modal-dialog" style="width: 20%">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<h5 class="modal-title" id="delModalLabel" style="color: red">删除
+					</h5>
+				</div>
+				<div class="modal-body">
+					<p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+
+				</div>
+				<div class="modal-footer">
+					<span id='deleteButton'></span>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	<!--Modal ends here--->
+
+	<!-- 全局js -->
+    <script src="<%=basePath%>/js/jquery-3.2.1.min.js?v=3.2.1"></script>
+    <script src="<%=basePath%>/js/bootstrap.min.js?v=3.3.7"></script>
+    <script src="<%=basePath%>/js/common/util.js"></script>
+    <script src="<%=basePath%>/js/plugins/bootstraptable/bootstrap-table.js"></script>
+    <script src="<%=basePath%>/js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+    <script src="<%=basePath%>/js/plugins/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+	<script src="<%=basePath%>/js/plugins/datetimepicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+    
+<script type="text/javascript">
+	var rootPath = util.getRootPath();
+	var table = $('#tableSchoolNotice');
+	
+	//查询条件：开始日期
+	$('#startDate').datetimepicker({
+	    format: 'yyyy-mm-dd', //日期格式
+	    language: 'zh-CN', // 国际化 为中文
+	    startDate: "2013-02-14 10:00", //开始日期格式
+	    minView: 2, // 精确到2天
+	    todayBtn: true, //显示当天日期
+	    autoclose: true, //选择日期后自动关闭 
+	});
+	
+	//查询条件： 结束日期
+	$('#endDate').datetimepicker({
+	    format: 'yyyy-mm-dd', //日期格式
+	    language: 'zh-CN', // 国际化 为中文
+	    startDate: "2013-02-14 10:00", //开始日期格式
+	    minView: 2, // 精确到2天
+	    todayBtn: true, //显示当天日期
+	    autoclose: true, //选择日期后自动关闭 
+	});
+	
+	//初始化table
+	$(function() {
+		//初始化table
+		tableInit();
+	});
+	
+	function tableInit(){
+		table.bootstrapTable({
+							url : rootPath+'/classesNoticeInitServlet',//远程请求地址
+							method : 'get',//请求方式
+							type : 'json', //数据类型 
+							striped : true, //是否显示行间隔色
+							toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+							cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+							sortable : false, //是否启用排序
+							pagination : true, //是否显示分页（*）
+							pageNumber : 1, //初始化加载第一页，默认第一页
+							pageSize : 10, //每页的记录行数（*）
+							pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+							sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+							clickToSelect : true, //是否启用点击选中行
+							uniqueId:'NOTICEID',	//每一行的标识（要具有唯一性）
+							queryParams: queryParams, //客户发送请求参数
+							/* queryParams: {
+								"typeId": "3",
+								"SID": sId
+							}, */
+							columns : [
+									//field对应返回数据中的字段
+									{
+										field : 'NOTICEID',
+										title : '通知序号'
+									},
+									{
+										field : 'NEWSTITLE',
+										title : '消息标题'
+									},
+									{
+										field : 'CONTENT',
+										title : '消息内容',
+										width : '400px'
+									},
+									{
+										field : 'USERNAME',
+										title : '发布人'
+									},
+									{
+										field : 'CRETIME',
+										title : '发布时间',
+										formatter:function (value, row, index){
+											var time = value.replace('T',' ');
+											return time;
+										}
+									},
+
+									{
+										title : '操作',
+										align : 'center',
+										width : '18%',
+										formatter : function(value, row, index) {
+											//获取当前row内容
+											var id = row.NOTICEID;
+											/* var title = row.NEWSTITLE;
+											var content = row.CONTENT;
+											var user = row.USERNAME;
+											var time = row.CRETIME; */
+											return [ 
+													'<a type="button" class="btn btn-primary shiny btn-xs purple" data-id="'+id+'" data-toggle="modal" data-target="#addModal" data-flag="edit"><i class="fa fa-edit"></i>&nbsp;编辑</a>&nbsp',
+													'<a type="button" class="btn btn-info shiny btn-xs purple" data-id="'+id+'" data-toggle="modal" data-target="#detailModal"><i class="fa fa-eye"></i>&nbsp;查看</a>&nbsp',
+													'<a type="button" class="btn btn-danger shiny btn-xs purple" onclick="confirmDeleteModal('+ id + ')" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i>&nbsp;删除</a>&nbsp', ]
+													.join('');
+										}
+									} ],
+							onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+								$(".info").removeClass("info");
+								$(ele).addClass("info");
+							}
+						});
+		//$('#tableSchoolNotice').bootstrapTable('mergeCells', { index: 0, field: 'oper', colspan: 3, rowspan: 0});
+	};
+	
+	//modal 显示时执行：新增/修改
+    $('#addModal').on('show.bs.modal', function(event) {
+		var button = $(event.relatedTarget); //获取触发事件按钮
+		var flag = button.data("flag"); //获取操作标志
+		var btnSave = $('#btnSave');
+		var modal = $(this);
+		if(flag == "add"){//新增操作
+			modal.find('.modal-title').text("新增班级通知"); //设置modal标题
+    		$('#addForm')[0].reset(); //清空form表单
+    		btnSave.removeAttr('onclick');
+    		btnSave.attr('onclick', 'addClassNotice()');
+		}else{//修改操作
+			modal.find('.modal-title').text("修改学校通知"); //设置modal标题
+    		var id = button.data('id'); // Extract info from data-* attributes
+    		console.info("修改："+id);
+			//获取UniqueId标识的行数据
+			var row = table.bootstrapTable('getRowByUniqueId', id);
+    		
+			$('#newsTitle').val(row.NEWSTITLE);
+			$('#newsContent').val(row.CONTENT);
+			//移除点击事件
+			btnSave.removeAttr("onclick");
+			//添加编辑事件
+			btnSave.attr('onclick','editSubmit('+id+')');
+		}
+	});
+	
+	var searchData = {typeId: "3"};//通知类型：班级通知 3
+	
+	//定义请求参数：typeId, startDate, endDate, keyword
+	function queryParams(params){
+		params.typeId = searchData.typeId;
+		params.startDate = searchData.startDate;
+		params.endDate = searchData.endDate;
+		params.keyword = searchData.keyword;
+		return params;
+	}
+	
+	//查询条件:赋值给请求参数
+	function queryData(){
+		searchData.startDate = $('#startDate').val();
+		searchData.endDate = $('#endDate').val();
+		searchData.keyword = $('#keyword').val();
+		console.info("satrt:"+$('#startDate').val());
+    	table.bootstrapTable('destroy');
+		//重新创建表格 用于重新加载数据
+		tableInit();
+	}
+	
+	//新增班级通知
+    function addClassNotice(){
+    	var $form = $('#addForm');
+    	$.ajax({
+    		url: rootPath+'/addNoticeServlet',
+    		data: $form.serialize() + "&typeId=3",
+    		success : function(data) {
+    			var json = JSON.parse(data); //转成json格式
+            	if(json.result == "ok"){
+            		alert("操作成功！");
+            	}else{
+            		alert("操作失败！");
+            	}
+    			table.bootstrapTable('refresh');
+    		}
+    	});
+    	$('#addModal').modal('hide');
+    };
+    
+  	//班级通知修改
+    function editSubmit(id){
+    	//获取UniqueId标识的行数据
+    	var title = $('#newsTitle').val();
+    	var content = $('#newsContent').val();
+		var row = table.bootstrapTable('getRowByUniqueId', id);
+    	row.NEWSTITLE = title;
+    	row.CONTENT = content;
+    	
+//     	console.info(JSON.stringify(row));
+    	$.ajax({
+    		url:rootPath+'/updateNoticeServlet',
+    		data:{
+                "notice": JSON.stringify(row),
+                "typeId": "3", //班级通知
+            },
+            success:function(data){
+            	var json = JSON.parse(data); //转成json格式
+            	if(json.result == "ok"){
+            		alert("操作成功！");
+            	}else{
+            		alert("操作失败！");
+            	}
+				table.bootstrapTable('refresh'); //刷新表格
+            }
+    	});
+    	$('#addModal').modal('hide');
+    };
+    
+  //查看通知详情
+    $('#detailModal').on('show.bs.modal', function(event) {
+		var button = $(event.relatedTarget); // Button that triggered the modal
+		var id = button.data('id'); // Extract info from data-* attributes
+		//获取UniqueId标识的行数据
+		var row = table.bootstrapTable('getRowByUniqueId', id);
+		//填充input 内容 
+		$(".notice-title").val(row.NEWSTITLE);
+		$(".issuer").val(row.USERNAME);
+		$(".release-time").val(row.CRETIME);
+		$(".notice-content").val(row.CONTENT);
+	});
+
+    /* 查看modal */
+    function detailModal(id){
+        alert("detailModal(方法)");
+        console.log(" title=" + id);
+        $('#editModal').modal();
+        $('#editBtn').html('<a class="btn btn-primary" onclick="editeData('+id+')">提交</a>');
+    };  
+    
+    function editeData(id){
+        alert("id=" + id);
+    };
+	
+    /*table 删除按钮*/
+    function confirmDeleteModal(id){
+        $('#deleteButton').html('<a class="btn btn-default" onclick="deleteData('+id+')">确认</a>');
+    };     
+    
+    /*modal 确认删除按钮*/
+    function deleteData(id){
+    //   $("#successMessage").html("Record With id "+id+" Deleted successfully!");
+      $.ajax({
+        url: "../../schoolNoticeDelServlet",
+        data:{
+            "NOTICEID": id
+        },
+        success:function(data){
+        	var json = JSON.parse(data); //转成json格式
+        	if(json.result == "ok"){
+        		alert("操作成功！");
+        	}else{
+        		alert("操作失败！");
+        	}
+			table.bootstrapTable('refresh'); //刷新表格
+            }
+        });
+      $('#deleteModal').modal('hide'); // now close modal
+    };
+    
+
+</script>        
+</body>
+</html>

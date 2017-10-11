@@ -1,0 +1,119 @@
+package com.hinear.hxt.servlet.sys;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.hinear.hxt.entity.SchoolInfo;
+import com.hinear.hxt.util.EmptyUtils;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+
+
+/**
+ * 学校管理初始化数据  SchoolListInitServlet
+ * @time: 2017年6月23日10:52:33
+ * @author szs
+ */
+@WebServlet("/schoolListInitServlet")
+public class SchoolListInitServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		
+		String optFlag = request.getParameter("optFlag"); //操作标识
+		String resultJson;
+		Map<String, String> map = new HashMap<String, String> ();
+		
+		if(optFlag.equals("init")){ //数据初始化过程
+			System.out.println("进入init方法="+optFlag);
+			int pageSize = 10;
+			int pageIndex = 0;
+			String limit = request.getParameter("limit");
+			String offset = request.getParameter("offset");
+			if(!EmptyUtils.stringIsEmpty(limit)){
+				pageSize = Integer.parseInt(limit);
+			}
+			if(!EmptyUtils.stringIsEmpty(offset)){
+				pageIndex = Integer.parseInt(offset) / pageSize;
+			}
+			map.put("PageIndex", pageIndex+"");
+			map.put("PageSize", pageSize+"");
+			resultJson = HttpUtils.getInstance().get("B15", map);
+			response.getWriter().print(resultJson);
+		}
+		else if(optFlag!=null && optFlag.equals("add")){ //执行新增操作
+			System.out.println("进入新增操作"+ optFlag);
+			String domain = request.getParameter("domainName");
+			String school = request.getParameter("schoolName");
+			String address = request.getParameter("schoolAddress");
+			String linkName = request.getParameter("linkName");
+			String mobile = request.getParameter("mobile");
+			String remark = request.getParameter("school.remark");
+			System.out.println("remark="+remark);
+			
+			SchoolInfo schoolInfo = new SchoolInfo();
+			schoolInfo.setCHECKSTATE(0);
+			schoolInfo.setSID(87);
+			schoolInfo.setDOMAINID(96);
+//			schoolInfo.setDOMAINNAME(domain);
+			schoolInfo.setSNAME(school);
+			schoolInfo.setSADDRESS(address);
+			schoolInfo.setLINKNAME(linkName);
+			schoolInfo.setMOBILE(mobile);
+			schoolInfo.setHANDLESTATE(0);
+			schoolInfo.setREMARK(remark);
+			String schoolJson = JSONUtil.toJSON(schoolInfo);
+			map.put("YS_SCHOOL", schoolJson); //
+			resultJson = HttpUtils.getInstance().get("B17", map);
+			response.getWriter().print(resultJson);
+		}else if(optFlag.equals("edit")){
+			System.out.println("进入修改操作"+ optFlag);
+			String domain = request.getParameter("domainName");
+			String school = request.getParameter("schoolName");
+			String address = request.getParameter("schoolAddress");
+			String linkName = request.getParameter("linkName");
+			String mobile = request.getParameter("mobile");
+			String remark = request.getParameter("school.remark");
+			System.out.println("remark="+remark);
+			
+			SchoolInfo schoolInfo = new SchoolInfo();
+			schoolInfo.setCHECKSTATE(0);
+			schoolInfo.setSID(87);
+			schoolInfo.setDOMAINID(96);
+			schoolInfo.setSNAME(school);
+			schoolInfo.setSADDRESS(address);
+			schoolInfo.setLINKNAME(linkName);
+			schoolInfo.setMOBILE(mobile);
+			schoolInfo.setHANDLESTATE(0);
+			schoolInfo.setREMARK(remark);
+			String schoolJson = JSONUtil.toJSON(schoolInfo);
+			map.put("YS_SCHOOL", schoolJson); //
+			resultJson = HttpUtils.getInstance().get("B18", map);
+			response.getWriter().print(resultJson);
+		}
+//		else if(optFlag.equals("delete")){ //执行单条删除操作
+		else{
+			System.out.println("进入delete方法="+optFlag);
+			String sid = request.getParameter("sId");
+			map.put("ID", sid);
+			resultJson = HttpUtils.getInstance().get("B16", map);
+			response.getWriter().write(resultJson);
+		}
+	}
+
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+
+}

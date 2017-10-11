@@ -1,0 +1,86 @@
+/**
+ * version 1.0
+ */
+;
+var rootPath = util.getRootPath();
+//toast配置
+toastr.options = {
+		  "closeButton": true,//关闭按钮
+		  "debug": false,//debug
+		  "progressBar": true,//进度条
+		  "positionClass": "toast-bottom-right",//显示位置，右下
+		  "onclick": null,//单击
+		  "showDuration": "400",//显示持续时间
+		  "hideDuration": "1000",//隐藏持续时间
+		  "timeOut": "5000",//超时隐藏
+		  "extendedTimeOut": "1000",//延长时间
+		  "showEasing": "swing",//显示动画
+		  "hideEasing": "linear",//隐藏动画
+		  "showMethod": "fadeIn",//显示方法
+		  "hideMethod": "fadeOut"//隐藏方法
+		};
+
+$(function() {
+	toastr.success('Without any options', 'Simple notification!');
+	$.post(rootPath+'/clockTimeServlet?optFlag=query',function(data){
+		if(data){
+			$('#upTime').val(data.UPTIME);
+			$('#downTime').val(data.DOWNTIME);
+			initTime();
+		}
+	},'json');
+});
+
+function saveSchoolTime() {
+	var upTime = $('#upTime').val();
+	var downTime = $('#downTime').val();
+	$.post(rootPath+'/clockTimeServlet?optFlag=update',{upTime:upTime,downTime:downTime},function(data){
+		if(data.result=='ok'){
+			btnEnable(0, 0);
+			toastr.success('提示', '保存成功！');
+		}else{
+			toastr.error('提示', '保存失败！请稍后再试');
+		}
+	},'json');
+}
+
+function initTime() {
+	//查询日期设置
+	$('#upTimeGroup').datetimepicker({
+		format: 'hh:mm:ss', //日期格式
+		pickDate: false
+	}).on('changeDate',function(e){
+		var downtime = $('#downTime').val();
+		if(util.text.isEmpty($('#downTime').val())){
+			return;
+		}
+		var sdate = Date.parse('2017-08-08 '+$('#upTime').val());
+		var edate = Date.parse('2017-08-08 '+downtime);
+		btnEnable(sdate,edate);
+	});
+	$('#downTimeGroup').datetimepicker({
+		format: 'hh:mm:ss', //日期格式
+		pickDate: false
+	}).on('changeDate',function(e){
+		var uptime = $('#upTime').val();
+		if(util.text.isEmpty(uptime)){
+			return;
+		}
+		var sdate = Date.parse('2017-08-08 '+uptime);
+		var edate = Date.parse('2017-08-08 '+$('#downTime').val());
+		btnEnable(sdate,edate);
+	});;
+};
+
+function btnEnable(sdate,edate) {
+	var btn = $('#btnSave');
+	if(sdate < edate){
+		btn.removeClass('btn-delete');
+		btn.addClass('btn-primary');
+		btn.removeAttr('disabled');
+	}else{
+		btn.removeClass('btn-primary');
+		btn.addClass('btn-delete');
+		btn.attr('disabled','disabled');
+	}
+};

@@ -1,0 +1,88 @@
+package com.hinear.hxt.filter;
+
+import java.io.IOException;
+import java.util.regex.Pattern;
+
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.hinear.hxt.util.EmptyUtils;
+
+/**
+ * Servlet Filter implementation class SessionFilter
+ */
+public class SessionFilter implements Filter {
+
+	/** 要检查的 session 的名称 */
+	private String sessionKey;
+
+	/** 需要排除（不拦截）的URL的正则表达式 */
+	private Pattern excepUrlPattern;
+
+	/** 检查不通过时，转发的URL */
+	private String redirectUrl;
+
+	@Override
+	public void init(FilterConfig cfg) throws ServletException {
+		sessionKey = cfg.getInitParameter("sessionKey");
+
+		String excepUrlRegex = cfg.getInitParameter("excepUrlRegex");
+		if (!EmptyUtils.stringIsEmpty(excepUrlRegex)) {
+			excepUrlPattern = Pattern.compile(excepUrlRegex);
+		}
+
+		redirectUrl = cfg.getInitParameter("redirectUrl");
+	}
+
+	@Override
+	public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+			throws IOException, ServletException {
+		// 如果 sessionKey 为空，则直接放行
+		if (EmptyUtils.stringIsEmpty(sessionKey)) {
+			chain.doFilter(req, res);
+			return;
+		}
+
+		// * 请求 http://127.0.0.1:8080/webApp/home.jsp?a=1&b=2 时
+		// * request.getRequestURL()： http://127.0.0.1:8080/webApp/home.jsp
+		// * request.getContextPath()： /webApp
+		// * request.getServletPath()：/home.jsp
+		// * request.getRequestURI()： /webApp/home.jsp
+		// * request.getQueryString()：a=1&b=2
+		HttpServletRequest request = (HttpServletRequest) req;
+		String servletPath = request.getServletPath();
+		// 需要拦截的请求
+		if((servletPath.endsWith(".jsp")||servletPath.endsWith("Servlet"))&&!servletPath.equals(redirectUrl)&&!excepUrlPattern.matcher(servletPath).matches()){
+			//不包含login，注册等jsp页面请求与Servlet数据请求
+			HttpSession session = request.getSession();
+			// 如果Session为空，则跳转到指定页面
+			if (session == null || session.getAttribute(sessionKey) == null) {
+				HttpServletResponse response = (HttpServletResponse) res;
+				//判断是否为ajax请求（返回过时状态让ajax自己做处理）
+				if (request.getHeader("x-requested-with") != null && request.getHeader("x-requested-with").equals("XMLHttpRequest")) { // ajax请求
+					response.setHeader("sessionstatus", "timeout");
+				} else {
+					String contextPath = request.getContextPath();
+					response.sendRedirect(contextPath + redirectUrl);
+				}
+			} else {
+				chain.doFilter(req, res);
+			}
+		}else{
+			//不需拦截的直接放行
+			chain.doFilter(req, res);
+		}
+	}
+
+	@Override
+	public void destroy() {
+	}
+
+}

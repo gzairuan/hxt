@@ -1,0 +1,194 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+<title>日志管理</title>
+
+<link rel="shortcut icon" href="../../icons/favicon.ico">
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+<link href="../../css/plugins/bootstraptable/bootstrap-table.css"
+	rel="stylesheet">
+<link href="../../css/plugins/multiple-select/bootstrap-multiselect.css"
+	rel="stylesheet">
+	
+	<style type="text/css">
+		.example-box {
+		    position: relative;
+		    padding: 15px 0 15px 0;
+		    margin-right: 0;
+		    margin-left: 0;
+		}
+		.margin-bottom-10 {
+		    margin-bottom: 10px!important;
+		}
+	</style>
+
+</head>
+
+<body class="gray-bg">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- Panel -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h5>日志管理</h5>
+			</div>
+			<!-- ibox 主题内容 -->
+			<div class="ibox-content">
+				<!--查询窗体-->
+				<div class="example-box" role="form">
+					<div class="row form-inline margin-bottom-10">
+						<div class="form-group col-md-6">
+							<label for="startDate">开始日期：</label>
+							<input id="startDate" type="text" class="form-control">
+							<label for="endDate">至</label>
+							<input id="endDate" type="text" class="form-control">
+						</div>
+						<div class="form-group col-md-4">
+							<label for="keyword">关键字：</label>
+							<input id="keyword" type="text" class="form-control" placeholder="标题或内容">
+						</div>
+						<div class="form-group col-md-2">
+							<a id="btnSearch" type="button" class="btn btn-sm btn-primary"
+								onclick="searchData()">搜索</a>
+						</div>
+					</div>
+				</div>
+				
+				<table id="table"></table>
+				
+			</div>
+		</div>
+	</div>
+	<!-- table 删除modal -->
+	<div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+		aria-labelledby="delModalLabel" data-backdrop="true"
+		aria-hidden="true">
+		<div class="modal-dialog" style="width: 20%">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<h5 class="modal-title" id="delModalLabel" style="color: red">删除
+					</h5>
+				</div>
+				<div class="modal-body">
+					<p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+				</div>
+				<div class="modal-footer">
+					<!--  <span id='deleteButton'></span> -->
+					<button id="btnDel" type="button" class="btn btn-delete"
+						data-dismiss="modal">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	
+	<!-- 全局js -->
+    <script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+    <script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+    <script src="../../js/plugins/bootstraptable/bootstrap-table.js"></script>
+    <script src="../../js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+    <script type="text/javascript">
+    	$(function() {
+    		$('#table').bootstrapTable({
+   			 	method: 'get',
+                toolbar: '#toolbar',    //工具按钮用哪个容器
+                striped: true,      //是否显示行间隔色
+                cache: false,      //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+                pagination: true,     //是否显示分页（*）
+                sortable: false,      //是否启用排序
+                sortOrder: "asc",     //排序方式
+                pageNumber:1,      //初始化加载第一页，默认第一页
+                pageSize: 10,      //每页的记录行数（*）
+                pageList: [10, 25, 50, 100],  //可供选择的每页的行数（*）
+                url: "../../LogServlet",//这个接口需要处理bootstrap table传递的固定参数
+                //queryParams: queryParams,//前端调用服务时，会默认传递上边提到的参数，如果需要添加自定义参数，可以自定义一个函数返回请求参数
+                sidePagination: "server",   //分页方式：client客户端分页，server服务端分页（*）
+                //search: true,      //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+                strictSearch: true,
+                //showColumns: true,     //是否显示所有的列
+                //showRefresh: true,     //是否显示刷新按钮
+                minimumCountColumns: 2,    //最少允许的列数
+                clickToSelect: true,    //是否启用点击选中行
+                searchOnEnterKey: true,
+    			columns: [{
+    		        checkbox:true,
+    		    },{
+    		        field: 'user_name',
+    		        title: '用户名',
+    		    }, {
+    		        field: 'user_ip',
+    		        title: '用户IP'
+    		    }, {
+    		        field: 'model_type',
+    		        title: '模块'
+    		    }, {
+    		        field: 'oprate_type',
+    		        title: '功能'
+    		    }, {
+    		        field: 'oprate_time',
+    		        title: '操作时间'
+    		    }, {
+    		        field: 'remark',
+    		        title: '备注'
+    		    }, {
+    		        title: '操作',
+    		        align : 'center', width:'18%',
+					formatter : function(value, row, index) {
+						//获取当前row内容
+						var logId = row.id;
+						var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple" onclick="confirmDeleteModal('+ logId + ')" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i> 删除</a>';
+							return [del].join(' ');
+						}
+    		    }],
+    		    pagination:true,
+    		    onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+    				$(".info").removeClass("info");
+    				$(ele).addClass("info");
+    			}
+    		});
+		});
+    	/*table 删除按钮*/
+		function confirmDeleteModal(id) {
+    		alert(id);
+			var btnDel = $("#btnDel");
+			btnDel.removeAttr("onclick");
+			btnDel.attr('onclick', 'deleteData(' + id + ')');
+		};
+		/*modal 确认删除按钮*/
+		function deleteData(id) {
+			//   $("#successMessage").html("Record With id "+id+" Deleted successfully!");
+			$.ajax({
+				url : "../../LogDeleteServlet",
+				data : {
+					"logId" : id,
+				},
+				success : function(data) {
+					table.bootstrapTable('refresh'); //刷新表格
+					alert("已删除" + id + "记录。");
+				},
+				dataType:'json'
+			});
+		};
+    	var searchParams = {sendFlag:$('#sendFlag').val()};
+		//table数据请求参数设置
+		function queryParams(params) {
+			params.startDate = searchParams.startDate;
+			params.endDate = searchParams.endDate;
+			params.keyword = searchParams.keyword;
+			return params;
+		}
+    </script>
+</body>
+</html>

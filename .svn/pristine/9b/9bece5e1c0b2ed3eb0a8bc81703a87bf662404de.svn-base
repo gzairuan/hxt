@@ -1,0 +1,524 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>学校相册</title>
+<link rel="shortcut icon" href="../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css" rel="stylesheet">
+<link href="../../css/style.default.css" rel="stylesheet">
+<!-- <link href="../../css/plugins/bootstraptable/bootstrap-table.css" rel="stylesheet"> -->
+<!-- 相册blueimp-gallery -->
+<!-- <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"> -->
+<!-- <link rel="stylesheet" href="http://blueimp.github.io/Gallery/css/blueimp-gallery.min.css"> -->
+<!-- <link rel="stylesheet" href="css/bootstrap-image-gallery.min.css"> -->
+<link href="../../css/plugins/blueimp-gallery/blueimp-gallery.css" rel="stylesheet">
+
+</head>
+
+<body class="gray-bg">
+	<!-- ibox 动画效果 -->
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<div class="ibox float-e-margins">
+			<!-- box title -->
+			<div class="ibox-title">
+				<h4>校园相册</h4>
+			</div>
+			<div class="ibox-content">
+				<div class="prodwrapper">
+					<div class="prodhead">
+						<!-- 头部按钮 -->
+						<div class="prodhead_menu">
+							<div style="float: right">
+								<button id="createBtn" class="btn btn-primary" data-toggle="modal" data-target="#addAlbumModal" data-flag="add">创建相册</button>
+								&nbsp;&nbsp;
+								<button id="uploadBtn" class="btn btn-primary">上传照片</button>&nbsp;&nbsp;
+								<button id="backBtn" class="btn btn-primary" onclick="backAblum()">返回</button>
+							</div>
+						</div>
+						
+						<!-- 头部分页按钮 -->
+						<ul class="prodhead_menu">
+							<li><a class="prev prev_disabled" title="上一页"></a></li>
+							<li><a class="next" title="下一页"></a></li>
+							<li class="right"></li>&nbsp;
+						</ul>
+						&nbsp;&nbsp;<small><span class="pagenuminfo" id="spanCountId">显示 1 -
+								20 总共  69 记录</span></small> <span class="clearall"></span>
+					</div>
+
+					<!-- 相册列表内容展示 -->
+					<div class="prodcontent" id="ablumDivId">
+							<!-- 相册ablumUl -->
+							<ul class="prodlist" id="ablumUlId">
+								<!-- <li class="one_third">
+									<div class="post-container">
+										悬浮操作栏
+										<div class="post-option">
+											<ul class="list-options">
+												<li><a type="button" data-toggle="modal" data-target="#addAlbumModal"> <i class="fa fa-edit"></i> <span>修改</span></a>
+												</li>
+												<li><a href="#"> <i class="fa  fa-industry"></i> <span>设置封面</span></a>
+												</li>
+												<li><a href="#"> <i class="fa  fa-download"></i> <span>下载</span></a>
+												</li>
+												<li><a href="#"> <i class="fa fa-trash-o"></i> <span>删除</span></a>
+												</li>
+											</ul>
+										</div>
+										相册图片
+										<div class="thumb">
+											<a href=""><img src="../../img/album/0.jpg" onerror="this.src='../../img/user_160x160.jpg'" alt="" /></a>
+										</div>
+										相册介绍
+										<div class="post-desc">
+											<h2>小一班相册</h2>
+											<h3>0张</h3>
+										</div>
+									</div>
+								</li>
+								-->
+
+							</ul>
+					</div><!-- end prodcontent -->
+					<!-- 照片列表 -->
+					<div class="prodcontent" id="photoDivId">
+						<ul class="prodlist" id="photosId">
+							<!-- <li class="one_third">
+									<div class="post-container">
+										<div class="post-option">
+											<ul class="list-options">
+												<li><a href="#"> <i class="fa fa-edit"></i> <span>修改</span></a>
+												</li>
+												<li><a href="#"> <i class="fa fa-trash-o"></i> <span>删除</span></a>
+												</li>
+											</ul>
+										</div>
+										<div class="thumb">
+											<a href="#"><img src="../../img/album/0.jpg" alt="" /></a>
+										</div>
+										<div class="post-desc">
+											<h2>小一班相册</h2>
+											<h3>0张</h3>
+										</div>
+									</div>
+								</li> -->
+						</ul>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 创建相册 -->
+	<div id="addAlbumModal" class="modal fade" role='dialog' tabindex="-1"
+        aria-labelledby="delModalLabel" data-backdrop="true" 
+        aria-hidden="true">
+        <div class="modal-dialog" style="width: 35%;  max-height:400px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <h5 class="modal-title" id="delModalLabel" >创建相册</h5>
+                </div>
+				<div class="modal-body">
+					<form id="ablumFormId" action="" class="form-inline">
+						<div class="form-group">
+        					<label id="labelDescId" class="col-sm-4 control-label">相册描述：</label>
+							<div class="col-sm-4">
+			            		<input id="albumDesc" type="text" name="albumDesc" required="required" class="form-control" placeholder="请输入文本">
+							</div>
+						</div>
+					</form>
+
+				</div>
+				<div class="modal-footer">
+                   <!--  <span id='deleteButton'></span> -->
+                    <button id="btnSave" type="button" class="btn btn-default" data-dismiss="modal" onclick="creatAblum()">保存</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+	
+	<!-- 删除modal -->
+	<div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+        aria-labelledby="delModalLabel" data-backdrop="true"
+        aria-hidden="true">
+        <div class="modal-dialog" style="width: 20%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <h5 class="modal-title" id="delModalLabel" style="color: red">删除提示
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p id="del_pId" class="glyphicon glyphicon-question-sign">&nbsp;是否确定删除该相册？</p>
+                </div>
+                <div class="modal-footer">
+                   <!--  <span id='deleteButton'></span> -->
+                    <button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal">确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <!-- 预览照片 preview -->
+    <div id="previewPhotoModal" class="modal fade" role='dialog' tabindex="-1"
+        aria-labelledby="delModalLabel" data-backdrop="true" 
+        aria-hidden="true">
+        <div class="modal-dialog" style="width: 60%;  height:50%;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <h5 class="modal-title" id="delModalLabel" >照片预览</h5>
+                </div>
+				<div class="modal-body" style="max-height: 20%;">
+					
+					<div id="blueimp-gallery" class="blueimp-gallery">
+					　　<div class="slides"></div>
+					　　<h3 class="title"></h3>
+					　　<a class="prev">‹</a>
+					　　<a class="next">›</a>
+					　　<a class="close">×</a>
+					　　<a class="play-pause"></a>
+					　　<ol class="indicator"></ol>
+					</div>
+
+				</div>
+				<div class="modal-footer">
+                   <!--  <span id='deleteButton'></span> -->
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+	
+	<!-- 全局js -->
+	<script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+	<script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+	<!-- 兼容ie9及以下 -->
+	<script src="../../js/json2.js"></script>
+<!-- 	<script src="../../js/plugins/bootstraptable/bootstrap-table.js"></script> -->
+<!-- 	<script src="../../js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script> -->
+
+<!-- <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script> -->
+<!-- <script src="http://blueimp.github.io/Gallery/js/jquery.blueimp-gallery.min.js"></script> -->
+<!-- <script src="js/bootstrap-image-gallery.min.js"></script> -->
+	<script src="../../js/plugins/blueimp-gallery/blueimp-gallery.js"></script>
+	<script src="../../js/plugins/blueimp-gallery/jquery.blueimp-gallery.min.js"></script>
+
+<script type="text/javascript">
+	//全部变量
+	var albumDesc; //相册描述 如： 小一班相册
+	var imgTotal; //图片总数如： 3张
+	var ablumDivId = $('#ablumDivId'); //相册div
+	var photoDivId = $('#photoDivId'); //照片div
+	var createBtn = $('#createBtn'); //创建相册按钮
+	var uploadBtn = $('#uploadBtn'); //上传照片
+	var backBtn = $('#backBtn'); //返回
+	var ablumTotal;//登录人所在学校相册总数
+
+	//初始化相册页面
+	var init= $(document).ready(function(){
+		//页面初始化时显示相册列表，隐藏照片列表
+		photoDivId.hide();
+		backBtn.hide();
+		intiAblumList(); //初始化相册
+	});
+	
+	//初始化相册
+	function intiAblumList(){
+		console.info("intiAblumList(相册方法)");
+		$.ajax({
+			url: '../../schoolAblumServlet?optFlag=init',
+			success:function(result){//后台返回相册数据
+// 				console.info("result==="+result);
+				var r_json = JSON.parse(result); //转成json
+				ablumTotal = r_json.total;
+// 				 document.getElementById("spanCountId").innerHTML=ablumTotal;
+				$('#spanCountId').html(ablumTotal);  //实现分页  TODO....
+				
+				var rowsArr = r_json.rows; //获取rows对象
+				for(var i = 0; i < rowsArr.length; i++){
+					var albumDesc = rowsArr[i].ALBUMDESC; //获取相册描述
+					var albumId = rowsArr[i].ALBUMID; //相册ID
+// 					console.info("albumId="+albumId);
+					var ul = $('#ablumUlId'); 
+						
+					if(albumDesc != null){ //描述不为空,生成相册列表
+						var dataArr = rowsArr[i].data; //获取data照片集合对象
+						
+						if(dataArr == null){ //获取data集合 图片总数
+							imgTotal = 0;  //相册为0张照片
+						}else{
+							imgTotal = dataArr.length; //照片总数 如： 3张
+						}
+						
+						var liDom = $('<li class="one_third">' +
+								'<div class="post-container">' +
+									'<div class="post-option">' + 
+										'<ul class="list-options">' +  //定义相册悬浮操作栏  onclick="'+ editAblum(albumId) +'"
+											'<li><a type="button" data-toggle="modal" data-target="#addAlbumModal" data-flag="editAblum" data-ablum="'+albumDesc+'" data-id="'+ albumId +'"> <i class="fa fa-edit"></i> <span>修改</span></a></li>' +
+											'<li><a href="#"> <i class="fa  fa-industry"></i> <span>设置封面</span></a></li>' +
+// 											'<li><a href="#"> <i class="fa  fa-download"></i> <span>下载</span></a></li>' +
+											'<li><a href="#" data-toggle="modal" data-target="#deleteModal" data-id="'+ albumId +'" data-flag="delAblum"> <i class="fa fa-trash-o"></i> <span>删除</span></a></li>' +
+										'</ul>' +
+									 '</div>' +
+									'<div class="thumb">' +  //定义相册图片div
+										'<a href="#"><img src="../../img/album/szs.jpg" alt="" onerror="this.src=\'../../img/no_photo_s.png\'" onclick="ablumInfo('+albumId+')"/></a>' +
+									'</div>' +
+									'<div class="post-desc">' +  //定义相册介绍div
+										'<h2>'+ albumDesc +'</h2>' +
+										'<h3>'+ imgTotal +'张</h3>' +
+									'</div>' +
+								'</div>' +
+							'</li>');
+						
+						ul.append(liDom); //ul追加li后面元素
+					}
+				}/* end for */	
+				
+			},/* end success function */
+		});
+	}; 
+	
+	//进入照片列表
+	function ablumInfo(albumId){
+// 		console.info("albumId444="+albumId);
+		ablumDivId.hide();
+		photoDivId.show();
+		createBtn.hide();
+		uploadBtn.hide();
+		backBtn.show();
+		
+		//初始化相片
+		$.ajax({
+			url: '../../schoolAblumServlet?optFlag=initPhoto',
+			data: {
+				"optFlag": "initPhoto",
+				"albumId": albumId
+			},
+			success: function(result){//后台返回的相片数据
+				var r_json = JSON.parse(result);
+				var ul = $('#photosId');
+				ul.html("");
+				console.info(r_json);
+				
+				for(var i = 0 ; i < r_json.length; i++){
+					var photoId = r_json[i].PHOTOID; //照片id
+					var photoDesc = r_json[i].PHOTODESC; //照片描述
+					var photoUrl = r_json[i].PHOTOURL; //照片url
+					
+					var liDom = $('<li class="one_third">' +
+							'<div class="post-container">' +
+								'<div class="post-option">' + 
+									'<ul class="list-options">' +  //定义照片悬浮操作栏
+										'<li><a type="button" data-toggle="modal" data-target="#addAlbumModal" data-flag="editPhoto" data-id="'+ photoId +'" data-photo="'+ photoDesc +'"> <i class="fa fa-edit"></i> <span>修改</span></a></li>' +
+										'<li><a href="#"> <i class="fa  fa-download"></i> <span>移动</span></a></li>' +
+										'<li><a href="#" data-toggle="modal" data-target="#deleteModal" data-id="'+ photoId +'" data-flag="delPhoto"> <i class="fa fa-trash-o"></i> <span>删除</span></a></li>' +
+									'</ul>' +
+								 '</div>' +
+								'<div class="thumb lightBoxGallery">' +  //定义照片div
+									'<a href="'+ photoUrl +'" class="btn btn-secondary btn-embossed enable-btn" data-gallery=""	title="照片描述：'+photoDesc+'">' +
+										'<img src="'+ photoUrl +'" alt="" onerror="this.src=\'../../img/no_photo_s.png\'" onclick="photoInfo('+ photoId +')"/>' +
+									'</a>' +
+									/* 预览图片 */
+									'<div id="blueimp-gallery" class="blueimp-gallery">' +
+	                                '<div class="slides"></div>'+
+	                                '<h3 class="title" title="照片描述："></h3>'+
+	                                '<a class="prev" title="上一张">‹</a>'+
+	                                '<a class="next" title="下一张">›</a>'+
+	                                '<a class="close" title="关闭">×</a>'+
+	                                '<a class="play-pause" title="自动播放"></a>'+
+	                                '<ol class="indicator"></ol>'+
+	                            '</div>'+
+									
+								'</div>' +
+								'<div class="post-desc">' +  //定义照片介绍div
+									'<h2>'+ photoDesc +'</h2>'+
+								'</div>' +
+							'</div>' +
+						'</li>');
+					
+					ul.append(liDom);
+				}/* end for */
+				
+			},/* end success */
+		}); /* end ajax */
+	};
+	
+	//返回按钮
+	function backAblum(){
+		backBtn.hide();
+		ablumDivId.show();
+		photoDivId.hide();
+		createBtn.show();
+		uploadBtn.show();
+	};
+	
+	//modal 打开时：新建相册或修改
+	$('#addAlbumModal').on('show.bs.modal', function(event){
+		var button = $(event.relatedTarget);  //获取按钮触发事件
+		var opt = button.data("flag"); //获取目标传递参数
+		var id = button.data("id");
+		var modal = $(this);
+		var btnSave = $('#btnSave'); //保存按钮
+		
+		if(opt == "add"){ //创建相册操作
+			
+			
+		}else if(opt == "editAblum"){//修改相册
+			var albumDesc = button.data("ablum"); //相册描述
+			modal.find('.modal-title').text("编辑相册"); //设置modal title
+			$('#albumDesc').val(albumDesc); //填充值
+			btnSave.removeAttr('onclick');
+			btnSave.attr('onclick', 'editAblum('+ id +')');
+		}else if(opt == "editPhoto"){ //修改照片描述
+			console.info("修改照片："+ id);
+			modal.find('.modal-title').text("修改照片描述");
+			$('#labelDescId').html("照片描述：");
+			var photoDesc = button.data("photo"); //相册描述
+			$('#albumDesc').val(photoDesc); //填充值
+			btnSave.removeAttr('onclick');
+			btnSave.attr('onclick', 'editPhoto('+ id +')');
+		}
+	});
+
+	/* 创建相册 */
+	function creatAblum(){
+		//获取相册描述值
+		var albumDesc = $('#albumDesc').val();
+		var $from = $('#ablumFormId');
+		$.ajax({
+			url: '../../schoolAblumServlet?optFlag=add',
+			data: $from.serialize(),
+			success:function(data){
+				console.info("data11="+data);
+				var json = JSON.parse(data);
+				
+			    if(json.result == "ok"){
+			    	alert("操作成功！");
+			    	intiAblumList();
+			    }else{
+			    	alert("操作失败！"); 
+			    }
+			},
+		});
+		intiAblumList();
+	};
+	
+	//修改相册
+	function editAblum(albumId, albumDesc){
+		var albumDesc = $('#albumDesc').val();
+		$.ajax({
+			url: '../../schoolAblumServlet',
+			data:{
+				optFlag: "editAblum",
+				albumId: albumId,
+				albumDesc: albumDesc
+			},
+			success:function(data){
+				var json = JSON.parse(data);
+			    if(json.result == "ok"){
+					alert("操作成功！");
+					intiAblumList();
+// 					$("#ablumDivIdv").load(location.href+" #ablumDivId"); 
+// 					window.frames['#ablumDivId'].location.href.reload();
+					//window.location.reload();//刷新当前页面.
+			    }else{
+					alert("操作失败！");
+			    }
+			}, /* end success */
+		});
+	}
+	
+	//删除相册modal
+	$('#deleteModal').on("show.bs.modal", function(e) {    
+    	// 这里的btn就是触发元素，即你点击的删除按钮
+    	var btn = $(e.relatedTarget), 
+        	id = btn.data("id"), //目标ID
+    		opt = btn.data("flag"); //操作标识
+    	if(opt == "delAblum"){ //相册相册
+    		$('#del_pId').html("&nbsp;是否确定删除该相册？");
+        	$('#btnDel').attr('onclick', 'deleteAlbum('+id+')');
+    	}else{//删除照片
+    		$('#del_pId').html("&nbsp;是否确定删除该照片？");
+    		$('#btnDel').attr('onclick', 'deletePhoto('+id+')');
+    		
+    	}
+  	});
+	
+	/* 删除相册  */
+	function deleteAlbum(albumId){
+		$.ajax({
+			url: '../../schoolAblumServlet',
+			data:{
+				optFlag: "delAblum",
+				albumId: albumId
+			},
+			success: function(data){
+				var json = JSON.parse(data);
+				if(json.result == "ok")
+					alert("操作成功！");
+				else
+					alert("操作失败！");
+			}
+		});
+	};
+	
+	//修改照片
+	function editPhoto(photoId){
+		var photoDesc = $('#albumDesc').val();
+		$.ajax({
+			url: '../../schoolAblumServlet',
+			data: {
+				optFlag: "editPhoto",
+				photoId: photoId,
+				photoDesc: photoDesc
+			},
+			success: function(data){
+				var json = JSON.parse(data);
+				if(json.result == "ok")
+					alert("操作成功！");
+				else
+					alert("操作失败！");
+			},
+		});
+	};
+	
+	//删除照片
+	function deletePhoto(photoId){
+		$.ajax({
+			url: '../../schoolAblumServlet',
+			data:{
+				optFlag: "delPhoto",
+				photoId: photoId
+			},
+			success: function(data){
+				var json = JSON.parse(data);
+				if(json.result == "ok")
+					alert("操作成功！");
+				else
+					alert("操作失败！");
+			}
+		});
+	}
+	
+</script>
+</body>
+</html>

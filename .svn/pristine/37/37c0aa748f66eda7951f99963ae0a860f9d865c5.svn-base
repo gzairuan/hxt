@@ -1,0 +1,288 @@
+var rootPath = util.getRootPath();
+var table = $('#tableSchoolNotice');
+
+//查询条件：开始日期
+$('#startDate').datetimepicker({
+    format: 'yyyy-mm-dd', //日期格式
+    language: 'zh-CN', // 国际化 为中文
+    startDate: "2013-02-14 10:00", //开始日期格式
+    minView: 2, // 精确到2天
+    todayBtn: true, //显示当天日期
+    autoclose: true, //选择日期后自动关闭 
+});
+
+//查询条件： 结束日期
+$('#endDate').datetimepicker({
+    format: 'yyyy-mm-dd', //日期格式
+    language: 'zh-CN', // 国际化 为中文
+    startDate: "2013-02-14 10:00", //开始日期格式
+    minView: 2, // 精确到2天
+    todayBtn: true, //显示当天日期
+    autoclose: true, //选择日期后自动关闭 
+});
+
+//初始化table
+$(function() {
+	//初始化table
+	tableInit();
+});
+
+function tableInit(){
+	table.bootstrapTable({
+		url : rootPath+'/classesNoticeInitServlet',//远程请求地址
+		method : 'get',//请求方式
+		type : 'json', //数据类型 
+		striped : true, //是否显示行间隔色
+		toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+		cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+		sortable : false, //是否启用排序
+		pagination : true, //是否显示分页（*）
+		pageNumber : 1, //初始化加载第一页，默认第一页
+		pageSize : 10, //每页的记录行数（*）
+		pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+		sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+		clickToSelect : true, //是否启用点击选中行
+		uniqueId:'NOTICEID',	//每一行的标识（要具有唯一性）
+		queryParams: queryParams, //客户发送请求参数
+		/* queryParams: {
+			"typeId": "3",
+			"SID": sId
+		}, */
+		columns : [
+				//field对应返回数据中的字段
+				{
+					field : 'NOTICEID',
+					title : '通知序号'
+				},
+				{
+					field : 'NEWSTITLE',
+					title : '消息标题'
+				},
+				{
+					field : 'CONTENT',
+					title : '消息内容',
+					width : '400px'
+				},
+				{
+					field : 'USERNAME',
+					title : '发布人'
+				},
+				{
+					field : 'CRETIME',
+					title : '发布时间',
+					formatter:function (value, row, index){
+						var time = value.replace('T',' ');
+						return time;
+					}
+				},
+
+				{
+					title : '操作',
+					align : 'center',
+					width : '18%',
+					formatter : function(value, row, index) {
+						//获取当前row内容
+						var id = row.NOTICEID;
+						/* var title = row.NEWSTITLE;
+						var content = row.CONTENT;
+						var user = row.USERNAME;
+						var time = row.CRETIME; */
+						return [ 
+								'<a type="button" class="btn btn-primary shiny btn-xs purple" data-id="'+id+'" data-toggle="modal" data-target="#addModal" data-flag="edit"><i class="fa fa-edit"></i>&nbsp;编辑</a>&nbsp',
+								'<a type="button" class="btn btn-info shiny btn-xs purple" data-id="'+id+'" data-toggle="modal" data-target="#detailModal"><i class="fa fa-eye"></i>&nbsp;查看</a>&nbsp',
+								'<a type="button" class="btn btn-danger shiny btn-xs purple" onclick="confirmDeleteModal('+ id + ')" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i>&nbsp;删除</a>&nbsp', ]
+								.join('');
+					}
+				} ],
+		onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+			$(".info").removeClass("info");
+			$(ele).addClass("info");
+		}
+	});
+	//$('#tableSchoolNotice').bootstrapTable('mergeCells', { index: 0, field: 'oper', colspan: 3, rowspan: 0});
+};
+
+$('#addForm').bootstrapValidator({
+	fields : {
+		title : {
+			validators : {
+				notEmpty : {
+					message : '请填写标题'
+				}
+			}
+		},content : {
+			validators : {
+				notEmpty : {
+					message : '请填写内容'
+				}
+			}
+		}
+	},
+	excluded: [':disabled']
+});
+
+//modal 显示时执行：新增/修改
+$('#addModal').on('show.bs.modal', function(event) {
+	var button = $(event.relatedTarget); //获取触发事件按钮
+	var flag = button.data("flag"); //获取操作标志
+	var btnSave = $('#btnSave');
+	var modal = $(this);
+	if(flag == "add"){//新增操作
+		modal.find('.modal-title').text("新增班级通知"); //设置modal标题
+		$('#addForm')[0].reset(); //清空form表单
+		btnSave.removeAttr('onclick');
+		btnSave.attr('onclick', 'addClassNotice()');
+	}else{//修改操作
+		modal.find('.modal-title').text("修改学校通知"); //设置modal标题
+		var id = button.data('id'); // Extract info from data-* attributes
+		console.info("修改："+id);
+		//获取UniqueId标识的行数据
+		var row = table.bootstrapTable('getRowByUniqueId', id);
+		
+		$('#newsTitle').val(row.NEWSTITLE);
+		$('#newsContent').val(row.CONTENT);
+		//移除点击事件
+		btnSave.removeAttr("onclick");
+		//添加编辑事件
+		btnSave.attr('onclick','editSubmit('+id+')');
+	}
+});
+$('#addModal').on("hidden.bs.modal", function() {
+	$('#addForm').bootstrapValidator('resetForm', true); // 重置验证
+});
+var searchData = {typeId: "3"};//通知类型：班级通知 3
+
+//定义请求参数：typeId, startDate, endDate, keyword
+function queryParams(params){
+	params.typeId = searchData.typeId;
+	params.startDate = searchData.startDate;
+	params.endDate = searchData.endDate;
+	params.keyword = searchData.keyword;
+	return params;
+}
+
+//查询条件:赋值给请求参数
+function queryData(){
+	searchData.startDate = $('#startDate').val();
+	searchData.endDate = $('#endDate').val();
+	searchData.keyword = $('#keyword').val();
+	console.info("satrt:"+$('#startDate').val());
+	table.bootstrapTable('destroy');
+	//重新创建表格 用于重新加载数据
+	tableInit();
+}
+
+//新增班级通知
+function addClassNotice(){
+	var $form = $('#addForm');
+	var valid = $form.data('bootstrapValidator');
+	valid.validate();  
+	if(valid.isValid()){
+		$.ajax({
+			url: rootPath+'/addNoticeServlet',
+			data: $form.serialize() + "&typeId=3",
+			dataType:'json',
+			success : function(data) {
+				if (data.result == 'ok') {
+					toastr.success('新增成功','提示');
+					// 请求成功（这里是添加数据成功）提示且刷新数据
+					table.bootstrapTable('refresh');
+				} else {
+					// 失败
+					toastr.error('新增失败！请稍后再试','提示');
+				}
+			}
+		});
+		$('#addModal').modal('hide');
+	}
+};
+
+//班级通知修改
+function editSubmit(id){
+	var $form = $('#addForm');
+	var valid = $form.data('bootstrapValidator');
+	valid.validate();  
+	if(valid.isValid()){
+		//获取UniqueId标识的行数据
+		var title = $('#newsTitle').val();
+		var content = $('#newsContent').val();
+		var row = table.bootstrapTable('getRowByUniqueId', id);
+		row.NEWSTITLE = title;
+		row.CONTENT = content;
+		
+	//     	console.info(JSON.stringify(row));
+		$.ajax({
+			url:rootPath+'/updateNoticeServlet',
+			data:{
+	            "notice": JSON.stringify(row),
+	            "typeId": "3", //班级通知
+	        },
+	        dataType:'json',
+	        success:function(data){
+	        	if (data.result == 'ok') {
+					toastr.success('修改成功','提示');
+					// 请求成功（这里是添加数据成功）提示且刷新数据
+					table.bootstrapTable('refresh'); //刷新表格
+				} else {
+					// 失败
+					toastr.error('修改失败！请稍后再试','提示');
+				}
+	        }
+		});
+		$('#addModal').modal('hide');
+	}
+};
+    
+  //查看通知详情
+$('#detailModal').on('show.bs.modal', function(event) {
+	var button = $(event.relatedTarget); // Button that triggered the modal
+	var id = button.data('id'); // Extract info from data-* attributes
+	//获取UniqueId标识的行数据
+	var row = table.bootstrapTable('getRowByUniqueId', id);
+	//填充input 内容 
+	$(".notice-title").val(row.NEWSTITLE);
+	$(".issuer").val(row.USERNAME);
+	$(".release-time").val(row.CRETIME);
+	$(".notice-content").val(row.CONTENT);
+});
+
+/* 查看modal */
+function detailModal(id){
+    alert("detailModal(方法)");
+    console.log(" title=" + id);
+    $('#editModal').modal();
+    $('#editBtn').html('<a class="btn btn-primary" onclick="editeData('+id+')">提交</a>');
+};  
+
+function editeData(id){
+    alert("id=" + id);
+};
+
+/*table 删除按钮*/
+function confirmDeleteModal(id){
+    $('#deleteButton').html('<a class="btn btn-default" onclick="deleteData('+id+')">确认</a>');
+};     
+
+/*modal 确认删除按钮*/
+function deleteData(id) {
+	// $("#successMessage").html("Record With id "+id+" Deleted successfully!");
+	$.ajax({
+		url : "../../schoolNoticeDelServlet",
+		data : {
+			"NOTICEID" : id
+		},
+		dataType:'json',
+		success : function(data) {
+			if (data.result == 'ok') {
+				toastr.success('删除成功', '提示');
+				// 请求成功（这里是删除数据成功）提示且刷新数据
+				table.bootstrapTable('refresh'); // 刷新表格
+			} else {
+				// 失败
+				toastr.error('删除失败！请稍后再试', '提示');
+			}
+		}
+	});
+	$('#deleteModal').modal('hide'); // now close modal
+};
+

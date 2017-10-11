@@ -1,0 +1,420 @@
+/**
+ * 学校相册
+ * date: 2017-8-30
+ * by: szs
+ * version: 1.0
+ */
+ 
+//全局变量
+var rootPath = util.getRootPath();
+var ablumDivId = $('#ablumDivId'),//相册div
+	albumUlId = $('#albumUlId'), //相册ul标签
+ 	photoDivId = $('#photoDivId'), //照片div
+ 	createBtn = $('#createBtn'), //创建相册按钮
+ 	uploadBtn = $('#uploadImgBtn'), //上传照片
+ 	backBtn = $('#backBtn'), //返回按钮
+ 	ablumTotal = 0;//登录人所在学校相册总数
+
+//初始化相册页面
+$(function(){
+	//页面初始化时显示相册列表，隐藏照片列表
+	photoDivId.hide();
+	backBtn.hide();
+	intiAblumList(); //初始化相册
+});
+
+/* 相册、照片分页变量 */
+var zz, //获取相册li总数
+	pageno=1, //当前页
+	pagesize=9, //每页显示多少条信息
+	pageall, //总页数
+	ulFlag = 1; //分页标识(1相册、2照片分页)
+var noneCover = rootPath + '/img/none.jpg';	 
+//初始化相册
+function intiAblumList(){
+	$.ajax({
+		url: rootPath + '/schoolAblumServlet?optFlag=initalbum',
+		success:function(result){//后台返回相册数据
+			var r_json = JSON.parse(result), //转成json
+//				albumCover = rootPath + '/img/none.jpg',
+				rows = r_json.rows, //获取rows对象
+				domul = $('#albumUlId');
+			ablumTotal = r_json.total; //相册总数
+			domul.empty(); //置空相册
+			$.each(rows, function(i, item){//遍历相册
+				var albumdesc = item.ALBUMDESC, //相册描述
+					albumid = item.ALBUMID, //相册ID
+					photoCount = 0; //照片总数
+				if(item.data != null){//设置相册封面
+					albumCover = item.data[0].PHOTOURL; //获取data一个个对象的 第一张图片
+					photoCount = item.data.length; //获取相册照片总数
+				}
+				var domli = 
+					'<li id="ablumLiId">'+
+						'<div class="post-container">'+
+							'<div class="post-option">' +
+								'<ul class="list-options">'+ //操作 
+									'<li>' +
+										'<a type="button" data-toggle="modal" data-target="#addAlbumModal" data-flag="editAlbum" data-id="'+ albumid +'"  data-albdesc="'+ albumdesc +'"> ' +
+											'<i class="fa fa-edit"></i> <span>修改</span></a>' +
+									'</li>'+
+									'<li>' +
+										'<a href="#" data-toggle="modal" data-target="#deleteModal" data-id="'+ albumid +'" data-flag="delAlbum">' +
+										'<i class="fa fa-trash-o"></i> <span>删除</span></a>' +
+									'</li>'+
+								'</ul>'+
+							'</div>'+
+							'<div class="thumb">'+
+								'<a href="#">'+
+									'<img src="'+ albumCover +'" alt="" onerror="this.src=\''+ noneCover +'\'" onclick="ablumInfo('+ albumid +')"/></a>'+
+							'</div>'+
+							'<div class="post-desc">'+
+								'<h2>'+ albumdesc +'</h2>'+
+								'<h3>'+ photoCount +'张</h3>'+
+							'</div>'+
+						'</div>'+
+					'</li>' ;
+					
+				domul.append(domli);
+			});
+			//实现相册分页
+			var liObj =$("ul#albumUlId li#ablumLiId"),
+				liTotal =new Array(liObj.length);
+				zz =getLiTotal(liObj); //获取相册li总数
+			if(zz.length%pagesize==0){
+			       pageall =zz.length/pagesize ;
+			    }else{
+			        pageall =parseInt(zz.length/pagesize)+1;
+			    }   //一共多少页
+			    ulFlag = 1;
+			    change(1); //显示第一页
+		}/* end success function */
+	});
+}; 
+	
+//初始化照片列表
+function ablumInfo(albumId){
+	ablumDivId.hide();
+	createBtn.hide();
+	uploadBtn.hide();
+	photoDivId.show();
+	backBtn.show();
+	$('#spanCountId').html("");
+	//初始化相片
+	$.ajax({
+		url: rootPath + '/schoolAblumServlet',
+		data: {
+			"optFlag": "initPhoto",
+			"albumId": albumId
+		},
+		success: function(result){//后台返回的相片数据
+			var photoArr = JSON.parse(result);
+			var domul = $('#photoUlId');
+			domul.html("");
+			$.each(photoArr, function(i, item){
+				var albumid = item.ALBUMID, //相册ID
+					photoid = item.PHOTOID,//照片id
+					photodesc = item.PHOTODESC,//照片描述
+					photourl = item.PHOTOURL; //照片url
+				var domli = 
+				'<li id="photoLiId">'+
+					'<div class="post-container">'+
+						'<div class="post-option">' +
+							'<ul class="list-options">'+ //操作 
+								'<li>' +
+									'<a type="button" data-toggle="modal" data-target="#addAlbumModal" data-flag="editPhoto" data-albumid="'+ albumid +'" data-id="'+ photoid +'" data-photodesc="'+photodesc +'"> ' +
+											'<i class="fa fa-edit"></i> <span>修改</span></a>' +
+								'</li>'+
+								/*'<li>' +
+									'<a href="#"> <i class="fa fa-download"></i> <span>移动</span></a>' +
+								'</li>'+*/
+								'<li>' +
+									'<a href="#" data-toggle="modal" data-target="#deleteModal" data-id="'+ photoid +'" data-albumid="'+ albumid +'" data-flag="delPhoto">' +
+									'<i class="fa fa-trash-o"></i> <span>删除</span></a>' +
+								'</li>'+
+							'</ul>'+
+						'</div>'+
+						'<div class="thumb">'+
+							'<a href="'+ photourl +'" data-gallery="" title="照片描述：'+ photodesc +'">'+
+								'<img src="'+ photourl +'" alt="" onerror="this.src=\''+ noneCover +'\'"/></a>'+
+						'</div>'+
+						'<div class="post-desc">'+
+							'<h2>'+ photodesc +'</h2>'+
+							/*'<h3>'+ item.data.length +'张</h3>'+*/
+						'</div>'+
+					'</div>'+
+				'</li>';
+				domul.append(domli);
+			});
+		   	//实现照片分页
+		    var a = $("ul#photoUlId li#photoLiId");
+			zz =getLiTotal(a); //获取相册li总数
+		    if(zz.length%pagesize==0){
+		       pageall =zz.length/pagesize ;
+		    }else{
+		        pageall =parseInt(zz.length/pagesize)+1;
+		    }   //一共多少页
+		    ulFlag = 2;
+		    change(1);  
+			
+		}/* end success */
+	}); /* end ajax */
+};
+	
+//获取相册li总数
+function getLiTotal(liObj){
+	var liTotal =new Array(liObj.length);
+    for(var i=0;i <liObj.length;i++){
+    	liTotal[i]=liObj[i].innerHTML;
+    } //div的字符串数组付给liTotal
+    return liTotal;
+}
+//分页实现当前页跳转
+function change(e){
+    pageno=e;
+    if(e<1){
+        e=1;pageno=1;//就等于第1页 ， 当前页为1
+    }
+    if(e>pageall){  //如果输入页大于最大页
+        e=pageall;pageno=pageall; //输入页和当前页都=最大页
+    }
+    var html="";
+    if(ulFlag == 1){ //1相册分页
+    	$('#albumUlId').html("");//全部清空
+    	for(var i=0;i<pagesize;i++){
+            html += '<li>' + zz[(e-1)*pagesize+i] +'</li>';//创建一页的li列表
+            if(zz[(e-1)*pagesize+i+1]==null) break;//超出最后的范围跳出
+        }
+        $("ul#albumUlId").html(html);//给ul列表写入html
+    }else{//2照片分页
+    	$('#photoUlId').html("");//全部清空
+    	for(var i=0;i<pagesize;i++){
+            html += '<li>' + zz[(e-1)*pagesize+i] +'</li>';//创建一页的li列表
+            if(zz[(e-1)*pagesize+i+1]==null) break;//超出最后的范围跳出
+        }
+        $("ul#photoUlId").html(html);//给ul列表写入html
+    }
+    var ye="";
+    for(var j=1;j<=pageall;j++){//循环总页数
+        if(e==j){
+            ye=ye+"<span><a href='#' onClick='change("+j+")' style='color:#FF0000'>"+j+"</a></span> "
+        }else{
+            ye=ye+"<a href='#' onClick='change("+j+")'>"+j+"</a> "
+        }
+    }
+    var pageContent="";
+//         显示 1 - 20 总共  69 记录
+    pageContent +='第<span id=\"a2\">'+pageno+'</span>/';
+    pageContent +='<span id="a1">'+pageall+'</span>页&nbsp;&nbsp;&nbsp;';
+    $("#spanCountId").html(pageContent);
+    
+    var prevContent ="";
+    var nextContent ="";
+    prevContent +='<a href="#" class="prev" title="上一页" onClick="change(--pageno)"></a>';
+    nextContent +='<a href="#" class="next" title="下一页" onClick="change(++pageno)"></a>';
+    $('#prevLiId').html(prevContent);
+    $('#nextLiId').html(nextContent);
+};
+	
+//返回按钮
+function backAblum(){
+	backBtn.hide();
+	ablumDivId.show();
+	photoDivId.hide();
+	createBtn.show();
+	uploadBtn.show();
+	
+	intiAblumList();//返回重新初始化相册，为了刷新分页
+};
+	
+//modal 打开时：新建相册或修改
+$('#addAlbumModal').on('shown.bs.modal', function(event){
+	var button = $(event.relatedTarget);  //获取按钮触发事件
+	var opt = button.data("flag"); //获取目标传递参数
+	var id = button.data("id");
+	var modal = $(this);
+	var btnSave = $('#btnSave'); //保存按钮
+	switch(opt){
+		case "createAlbum": //创建相册
+			modal.find('.modal-title').text("创建相册"); //设置modal title
+			$('#ablumFormId')[0].reset();
+			btnSave.removeAttr('onclick');
+			btnSave.attr('onclick', 'creatAblum()');
+		break;
+		case "editAlbum": //修改相册
+			var albumDesc = button.data("albdesc"); //相册描述
+			modal.find('.modal-title').text("编辑相册"); //设置modal title
+			$('#albumDesc').val(albumDesc); //填充值
+			btnSave.removeAttr('onclick');
+			btnSave.attr('onclick', 'editAblum('+ id +')');
+		break;
+		case "editPhoto": //修改照片描述
+			modal.find('.modal-title').text("修改照片描述");
+			$('#labelDescId').html("照片描述：");
+			var albumid = button.data("albumid"), //相册id
+				photodesc = button.data("photodesc"); //相册描述
+			
+			$('#albumDesc').val(photodesc); //填充值
+			btnSave.removeAttr('onclick');
+			btnSave.attr('onclick', 'editPhoto('+ id +', "'+albumid+'")');
+		break;
+	}
+	
+});
+
+/* 创建相册 */
+function creatAblum(){
+	//获取相册描述值
+	var albumDesc = $('#albumDesc').val();
+	var $from = $('#ablumFormId');
+	$.ajax({
+		url: rootPath + '/schoolAblumServlet?optFlag=createAlbum',
+		data: $from.serialize(),
+		success:function(data){
+			var json = JSON.parse(data);
+			intiAblumList();
+		    if(json.result == "ok"){
+		    	toastr.success('新增成功','提示');
+				intiAblumList();
+			} else {
+				// 失败
+				toastr.error('新增失败！请稍后再试','提示');
+			}
+		}
+	});
+	intiAblumList();
+};
+
+//修改相册
+function editAblum(albumId, albumDesc){
+	var albumDesc = $('#albumDesc').val();
+	$.ajax({
+		url: rootPath + '/schoolAblumServlet',
+		data:{
+			optFlag: "editAblum",
+			albumId: albumId,
+			albumDesc: albumDesc
+		},
+		success:function(data){
+			var json = JSON.parse(data);
+		    if(json.result == "ok"){
+				toastr.success('操作成功','提示');
+				intiAblumList();
+		    }else{
+				toastr.error('操作失败！请稍后再试','提示');
+		    }
+		} /* end success */
+	});
+}
+
+//删除相册modal
+$('#deleteModal').on("shown.bs.modal", function(e) {    
+	// 这里的btn就是触发元素，即你点击的删除按钮
+	var btn = $(e.relatedTarget), 
+    	id = btn.data("id"), //目标ID
+		opt = btn.data("flag"); //操作标识
+	if(opt == "delAlbum"){ //相册相册
+		$('#del_pId').html("&nbsp;是否确定删除该相册？");
+    	$('#btnDel').attr('onclick', 'deleteAlbum('+id+')');
+	}else{//删除照片
+		var albumid = btn.data("albumid"); //相册ID
+		$('#del_pId').html("&nbsp;是否确定删除该照片？");
+		$('#btnDel').attr('onclick', 'deletePhoto('+id+', "'+ albumid +'")');
+	}
+});
+
+/* 删除相册  */
+function deleteAlbum(albumId){
+	$.ajax({
+		url: rootPath + '/schoolAblumServlet',
+		data:{
+			optFlag: "delAblum",
+			albumId: albumId
+		},
+		success: function(data){
+			var json = JSON.parse(data);
+			if(json.result == "ok")
+				toastr.success('操作成功','提示');
+			else
+				toastr.error('操作失败！请稍后再试','提示');
+		}
+	});
+	intiAblumList();
+};
+
+//修改照片
+function editPhoto(photoId, albumid){
+	var photoDesc = $('#albumDesc').val();
+	$.ajax({
+		url: rootPath + '/schoolAblumServlet',
+		data: {
+			optFlag: "editPhoto",
+			photoId: photoId,
+			photoDesc: photoDesc
+		},
+		success: function(data){
+			var json = JSON.parse(data);
+			if(json.result == "ok"){
+				toastr.success('操作成功','提示');
+				ablumInfo(albumid); //刷新照片列表
+			}else{
+				toastr.error('操作失败！请稍后再试','提示');
+			}
+		}
+	});
+};
+
+//删除照片
+function deletePhoto(photoId, albumid){
+	$.ajax({
+		url: rootPath + '/schoolAblumServlet',
+		data:{
+			optFlag: "delPhoto",
+			photoId: photoId
+		},
+		success: function(data){
+			var json = JSON.parse(data);
+			if(json.result == "ok"){
+				toastr.success('操作成功','提示');
+				ablumInfo(albumid); //刷新照片列表
+			}else{
+				toastr.error('操作失败！请稍后再试','提示');
+			}
+		}
+	});
+};
+
+$("#uploadPhotoModal").on("shown.bs.modal",function(){
+	var albumId = $('#albumId');
+	$('#photoFormId')[0].reset();
+	//初始化相册下拉数据
+	initSelectAblum(albumId);
+	
+});
+
+//e 对应下拉选择标签ID
+function initSelectAblum(e){
+	console.info("初始化下拉相册");
+	if(e && e[0].length==1){
+		e.empty();
+		e.append('<option value="0" selected>请选择相册</option>');
+		$.ajax({ //异步获取相册ID，名称信息
+			url: rootPath + '/schoolAblumServlet?optFlag=initalbum',
+			success: function(data){
+				if(data != null){
+					var json = JSON.parse(data);
+					var rows = json.rows;
+					$.each(rows, function(i, item){
+						e.append('<option value="'+ item.ALBUMID+'">'+ item.ALBUMDESC +' </option>');
+					});
+				}
+			}
+		});
+	}
+};
+
+//选择相册后初始化上传组件
+function selectAlbum(){
+	var albumName = $('#albumId option:selected').text(); //获取相册名称
+	webuploaderInit(); //初始化webuploader控件,上传图片
+}

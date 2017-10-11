@@ -1,0 +1,67 @@
+html {  
+	background:url("img/login-background.jpg") no-repeat center fixed;
+    -webkit-background-size: cover;  
+    -moz-background-size: cover;  
+    -o-background-size: cover;  
+    background-size: cover;  
+}  
+
+body {  
+    padding-top: 20px;  
+    font-size: 14px;  
+    background: transparent;  
+    height:300px;  
+    overflow:auto  
+}
+
+.loginpanel {  
+	width: auto;
+	z-index:1; 
+}  
+
+.loginpanel form {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid #ccc;
+    -moz-box-shadow: 0 3px 0 rgba(12, 12, 12, 0.03);
+    -webkit-box-shadow: 0 3px 0 rgba(12, 12, 12, 0.03);
+    box-shadow: 0 3px 0 rgba(12, 12, 12, 0.03);
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    padding: 30px;
+}
+  
+.form-control,.input-group-addon{  
+    opacity:0.8;  
+	height: 35px;
+	font-size: 15px;
+}
+  
+/* footer start */  
+#footer {  
+	border-top: solid 1px #ccc;
+    bottom: 0;  
+    margin:20px 0 0 0;
+    padding-top: 10px;
+    width: 100%;  
+    /* Set the fixed height of the footer here */  
+    text-align: center;  
+}  
+
+.container {  
+    width: auto;  
+    max-width: auto;  
+    padding: 100px 15px;  
+    position: absolute;   
+    overflow: center;  
+}  
+  
+.center-vertical {  
+    position:relative;  
+    /* top:50%; 
+    transform:translateY(-0px); */  
+    -ms-transform: rotate(0deg); /* IE 9 */  
+    -moz-transform: rotate(0deg); /* Firefox */  
+    -webkit-transform: rotate(0deg); /* Safari ºÍ Chrome */  
+    -o-transform: rotate(0deg); /* Opera */  
+}

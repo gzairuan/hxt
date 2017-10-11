@@ -1,0 +1,23 @@
+;
+util = {
+	// 获取根路径
+	getRootPath : function() {
+		var pathname = window.location.pathname.substr(1);
+		var webname = pathname.substr(0, pathname.indexOf('/'));
+		return window.location.protocol + "//" + window.location.host + "/"
+				+ webname;
+	},
+	text : {
+		/**
+		 * 字符串判断是否为空
+		 * 
+		 * @param str
+		 *            字符串
+		 * @return boolean 返回值：true字符串为空，false字符串不为空
+		 */
+		isEmpty : function(str) {
+			return !str || str==undefined || str=='undefined' || str == null
+					|| str == '' || str.replace(/(^\s*)|(\s*$)/g, '').length == 0;
+		}
+	}
+};

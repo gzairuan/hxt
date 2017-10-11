@@ -1,0 +1,271 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getContextPath();
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+	name="viewport">
+<title>学生管理</title>
+<link rel="shortcut icon" href="<%=basePath%>/icons/favicon.ico">
+<link href="<%=basePath%>/css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="<%=basePath%>/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="<%=basePath%>/css/animate.css" rel="stylesheet">
+<link href="<%=basePath%>/css/style.css?v=4.1.0" rel="stylesheet">
+<!-- 表格 -->
+<link href="<%=basePath%>/css/plugins/bootstraptable/bootstrap-table.min.css" rel="stylesheet">
+<!-- 下拉多选 -->
+<link href="<%=basePath%>/css/plugins/multiple-select/bootstrap-multiselect.css" rel="stylesheet">
+<!-- 日期选择 -->
+<link href="<%=basePath%>/css/plugins/datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/bootstrapvalidator/bootstrapValidator.min.css" rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<!-- 包装内容 动画 从右方进入 -->
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- 面板 -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h3>学生管理</h3>
+			</div>
+			<div class="ibox-content">
+				<div class="box-body no-padding">
+					<form class="form-horizontal" role="form" id="queryForm">
+						<div class="col-md-3">
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="queStuNo">学号：</label>
+								<div class="col-md-7">
+									<input type="number" id="queStuNo" class="form-control"/>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="queStuName">姓名：</label>
+								<div class="col-md-7">
+									<input type="text" id="queStuName" class="form-control"/>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group">
+								<label class="col-md-4 control-label" for="queClassSelcet">班级：</label>
+								<div class="col-md-7">
+									<select id="queClassSelcet" class="form-control">
+										<option value="">班级</option>
+									</select>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-3">
+							<div class="form-group">
+								<div class="col-md-4">
+									<a id="btnSearch" type="button" class="btn btn-sm btn-primary"
+										onclick="searchData()">搜索</a>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+				<!-- 表格列表主窗体 -->
+				<!-- 表格上班按钮（新增等）的工具条 -->
+				<div id="toolbar">
+					<button class="btn btn-sm btn-primary add-role" data-toggle="modal" data-flag="add"
+						data-title="添加学生"
+						data-target="#stuModal">
+						<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+					</button>
+					<button class="btn btn-sm btn-primary" onclick="batchRemoveBtn()">
+						<i class="fa fa-mail-forward"> 批量调动</i>
+					</button>
+					<button class="btn btn-sm btn-primary" onclick="classRemoveBtn()">
+						<i class="fa fa-mail-forward"> 班级调动</i>
+					</button>
+					<button class="btn btn-sm btn-danger delete-role" style="display: none;"  data-toggle="modal"
+						data-target="#deleteModal">
+						<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>删除
+					</button>
+				</div>
+				<!-- 表格内容 -->
+				<table id="table">
+				</table>
+			</div>
+		</div>
+		<!-- 面板 END -->
+	</div>
+
+	<!-- table 新增(修改或详情) modal -->
+	<div class="modal fade in" id="stuModal" tabindex="-1" role="dialog"
+		aria-lablledby="stuModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<!-- 会话窗口 -->
+			<div class="modal-content">
+				<!-- 模态框内容 -->
+				<div class="modal-header">
+					<!-- 模态框头 -->
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<!-- 右上角关闭按钮“x” -->
+					<h5 class="modal-title" id="stuModalLabel">添加学生</h5>
+				</div>
+				<div class="modal-body">
+					<!-- 模态框主题内容 -->
+					<div class="box-body no-padding">
+						<form id="stuForm" role="form" class="form-horizontal">
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="stuClassSelect" class="col-md-4 control-label">班级：</label>
+										<div class="col-md-6">
+											<select id="stuClassSelect" name="stuClassId" class="form-control" required>
+												<option>请选择班级</option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group">
+										<label for="stuBirthday" class="col-md-4 control-label">生日：</label>
+										<div class="col-md-6">
+											<input name="stuBidthday" type="text" id="stuBirthday" class="form-control" readonly/>
+										</div>
+									</div>
+									<div class="form-group">
+										<label for="stuEntrySchoolDate" class="col-md-4 control-label">入校日期：</label>
+										<div class="col-md-6">
+											<input name="entrySchoolDate" type="text" id="stuEntrySchoolDate" class="form-control"  readonly/>
+										</div>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="form-group">
+										<label for="stuName" class="col-md-4 control-label">姓名：</label>
+										<div class="col-md-6">
+											<input name="stuName" type="text" id="stuName" class="form-control" required />
+										</div>
+									</div>
+									<div class="form-group">
+										<label for="stuSex" class="col-md-4 control-label">性别：</label>
+										<div class="col-md-6">
+											<select name="stuSex" id="stuSex" class="form-control">
+												<option value="0">女</option>
+												<option value="1">男</option>
+											</select>
+										</div>
+									</div>
+									<div class="form-group">
+										<label for="stuNo" class="col-md-4 control-label">学号：</label>
+										<div class="col-md-6">
+											<input name="stuNo" type="number" id="stuNo" class="form-control" required />
+										</div>
+									</div>
+								</div>
+								<div class="col-md-12">
+									<div class="form-group">
+										<label for="stuAddress" class="col-md-2 control-label">地址：</label>
+										<div class="col-md-9">
+											<input name="stuAddress" type="text" id="stuAddress" class="form-control" />
+										</div>
+									</div>
+									<div class="form-group" id="detailPL" style="display: none;">
+										<label class="col-md-2 control-label">联系家长：</label>
+										<div class="col-md-9">
+											<textarea rows="5" id="parentlink" class="form-control" readonly="readonly">
+											</textarea>
+										</div>
+									</div>
+								</div>
+						</form>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button id="btnStuSave" type="button" class="btn btn-primary">保存</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- table 删除modal -->
+	<div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+		aria-labelledby="delModalLabel" data-backdrop="true"
+		aria-hidden="true">
+		<div class="modal-dialog modal-sm" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<h5 class="modal-title" id="delModalLabel" style="color: red">删除
+					</h5>
+				</div>
+				<div class="modal-body">
+					<p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+				</div>
+				<div class="modal-footer">
+					<!--  <span id='deleteButton'></span> -->
+					<button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	
+	<!-- table 班级学生调动modal -->
+	<div id="transferModal" class="modal fade" role='dialog' tabindex="-1" aria-labelledby="delModalLabel" data-backdrop="true" aria-hidden="true">
+		<div class="modal-dialog " role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h5 class="modal-title" id="delModalLabel">学生信息调动</h5>
+				</div>
+				<div class="modal-body">
+					<form id="transferForm">
+						<div class="form-group">
+							<label class="control-label col-sm-3">调动后班级</label>
+							<div class="col-sm-6">
+								<input type="text">
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<!--  <span id='deleteButton'></span> -->
+					<button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	<!--Modal ends here--->
+	<!-- 全局js -->
+	<script src="<%=basePath%>/js/jquery-3.2.1.min.js?v=3.2.1"></script>
+	<script src="<%=basePath%>/js/bootstrap.min.js?v=3.3.7"></script>
+	<!-- 兼容ie9及以下json -->
+	<script src="<%=basePath%>/js/json2.js"></script>
+	<!-- 表格js -->
+	<script src="<%=basePath%>/js/plugins/bootstraptable/bootstrap-table.min.js"></script>
+	<script src="<%=basePath%>/js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+	<!-- 下拉多选 -->
+	<script src="<%=basePath%>/js/plugins/multiple-select/bootstrap-multiselect.js"></script>
+	<!-- 日期选择 -->
+	<script src="<%=basePath%>/js/plugins/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+	<script src="<%=basePath%>/js/plugins/datetimepicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+	
+	<script src="<%=basePath%>/js/plugins/toastr/toastr.min.js"></script>
+	<script type="text/javascript" src="<%=basePath%>/js/plugins/bootstrapvalidator/bootstrapValidator.min.js?v=0.5.3"></script>
+   
+	<!-- util -->
+	<script src="<%=basePath%>/js/common/util.js"></script>
+	<script src="<%=basePath%>/js/common/util-table.js"></script>
+	
+	<script type="text/javascript" src="student.js?v=1.2"></script>
+	<script type="text/javascript" src="<%=basePath%>/js/common/role-handler.js"></script>
+	
+</body>
+</html>

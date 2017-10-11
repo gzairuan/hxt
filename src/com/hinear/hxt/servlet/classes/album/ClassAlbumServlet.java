@@ -1,0 +1,243 @@
+package com.hinear.hxt.servlet.classes.album;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.hinear.hxt.entity.PhotoAblumInfo;
+import com.hinear.hxt.entity.PhotoInfo;
+import com.hinear.hxt.entity.UserInfo;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+import com.hinear.hxt.util.TransformUtils;
+
+/**
+ * 
+ * @author szs
+ * @time 2017年8月21日 上午10:05:06
+ * @version 1.0
+ * 描述：班级相册管理
+ */
+@WebServlet("/classAlbumServlet")
+public class ClassAlbumServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String optFlag = request.getParameter("optFlag");
+		String result = null;
+		int pageSize = 10000;
+		Map<String, String> map = new HashMap<String, String>();
+		HttpSession session = request.getSession();
+		UserInfo userInfo = null;
+		if(session != null){//session不为空
+			userInfo = (UserInfo) session.getAttribute("userInfo");
+			int userId = userInfo.getUSERID();
+			int sid = userInfo.getSID(); //登录者 学校ID
+			String cid = null; //班级ID
+			System.out.println(optFlag+"  "+cid);
+			
+			String albumId = null; //相册ID
+			String photoId = null; //照片ID
+			switch(optFlag){ 
+				case "initAlbum":  //根据班级id初始化相册
+					cid = request.getParameter("cid"); //班级ID
+					map.put("PageSize", pageSize+"");
+					map.put("PageIndex", "0");
+					map.put("UserID", userId+"");
+					map.put("SID", sid+"");
+					map.put("CID", cid);
+					result = HttpUtils.getInstance().get("04", map);
+					break;
+				case "initPhoto": //初始化相册 照片
+					albumId = request.getParameter("albumId");
+					map.put("PageIndex", "0");
+					map.put("PageSize", pageSize+"");
+					map.put("ALBUMID", albumId);
+					result = HttpUtils.getInstance().get("04I", map);
+					break;
+				case "creatAlbum": //创建相册
+					cid = request.getParameter("cid"); //班级ID
+					String desc = request.getParameter("desc"); //相册描述
+					
+					PhotoAblumInfo albumInfo = new PhotoAblumInfo();
+					albumInfo.setSID(sid);
+					albumInfo.setCREUSER(userId+""); //创建人
+					albumInfo.setALBUMDESC(desc);
+					albumInfo.setCLASSESID(Integer.valueOf(cid));
+					String albumInfoJson = JSONUtil.toJSON(albumInfo); //转成json格式
+					map.put("Notices", albumInfoJson); 
+					result = HttpUtils.getInstance().get("04F", map);  //创建班级相册接口
+					break;
+					
+				case "editAlbum": //编辑相册
+					albumId = request.getParameter("albumid");
+					String albumDesc = request.getParameter("albumDesc");
+					System.out.println(albumId + "====="+albumDesc);
+					map.put("ID", albumId);
+					map.put("ALBUMDESC", albumDesc);
+					result = HttpUtils.getInstance().get("04B", map);
+					break;
+					
+				case "delAlbum": //删除相册
+					albumId = request.getParameter("albumId");
+					map.put("ID", albumId);
+					result = HttpUtils.getInstance().get("04A", map);
+					break;
+					
+				case "editPhoto": //修改照片
+					photoId = request.getParameter("photoId");
+					String photoDesc = request.getParameter("photoDesc");
+					map.put("ID", photoId);
+					map.put("PHOTODESC", photoDesc);
+					result = HttpUtils.getInstance().get("04N", map);
+					break;
+					
+				case "delPhoto"://删除照片
+					photoId = request.getParameter("photoId");
+					map.put("ID", photoId);
+					result = HttpUtils.getInstance().get("04C", map);
+					break;
+					
+				case "uploadImg": //上传照片
+					String albumName = request.getParameter("albumName");//相册名称
+					//获取相册ID
+					albumId = request.getParameter("albumId");
+					String album = albumName.replace("\"", "").trim();
+					System.out.println(album+"=albumId=" +albumId);
+					
+					List<String> backList = upaloadImgs(sid,album, albumId, request); //上传图片
+					System.out.println("jsonArry返回结果："+backList);
+					break;
+					
+				default: break;
+			}
+		}
+//		System.out.println("result结果为："+result);
+		response.getWriter().print(result);;
+		
+	}
+	
+	//上传照片
+	private List<String> upaloadImgs(int sid,String albumName, String albumId, HttpServletRequest request) throws IOException {
+		StringBuffer url = request.getRequestURL();
+		String newurl = url.substring(0, url.lastIndexOf("/"));
+//		String servicePath = "upload" + File.separator + "img" + File.separator + "classesAlbum" + File.separator + albumName; //上传文件服务器目录（学校相册img）如：upload/img/南湾幼儿园学校/相册1
+		String servicePath = "/uploadnew/school" + sid + "/album/3/"+albumId; //上传文件服务器目录（学校相册img）如：upload/img/南湾幼儿园学校/相册1
+		System.out.println("servicePath="+servicePath);
+		
+		String basePath = this.getServletContext().getRealPath(servicePath); //班级相册路径
+		String fullPath = null; //上传文件夹
+		String fileName = null; //单独文件名
+		String filePath = null;
+		String fullName = null; //上传图片全名
+		final String allowFileSuffix = ".jpg,.jpeg,.bmp,.png";
+		
+		File serviceDir = new File(basePath);
+		if(!serviceDir.exists()){//判断目录是否存在
+			serviceDir.mkdirs();
+		}
+		
+//		JsonArray jsonArry = new JsonArray();
+//		JsonObject jsonObj = new JsonObject();
+		List<String> list = new ArrayList<>();
+		// 检查输入请求是否为multipart表单数据。
+		if (ServletFileUpload.isMultipartContent(request)) {
+			DiskFileItemFactory dff = new DiskFileItemFactory();// 创建该对象
+			dff.setRepository(serviceDir);// 指定上传文件的临时目录
+			dff.setSizeThreshold(1024000);// 指定在内存中缓存数据大小,单位为byte
+			ServletFileUpload sfu = new ServletFileUpload(dff);// 创建该对象
+			sfu.setFileSizeMax(10000000);//指定单个上传文件的最大尺寸
+			sfu.setHeaderEncoding("utf-8");
+
+			List<FileItem> fileItems = new ArrayList<FileItem>();
+			try {
+				fileItems = sfu.parseRequest(request); //获取上传文件
+				System.out.println("文件大小："+fileItems.size());
+			} catch (FileUploadException e1) {
+				System.out.println("文件上传发生错误" + e1.getMessage());
+			}
+			for (FileItem fileItem : fileItems) { //遍历上传文件
+				// 判断该表单项是否是普通文本类型
+				if (fileItem.isFormField()) {
+//					String name = fileItem.getFieldName();// 控件名
+//					String value = fileItem.getString();
+//					fileName = name.substring(name.lastIndexOf(File.separator) + 1);
+				} else {
+					filePath = fileItem.getName(); //
+					if (filePath == null || filePath.trim().length() == 0)
+						continue;
+					SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss", Locale.getDefault());
+					String format = sdf.format(new Date());
+					int ran = (int) (Math.random() * 1000);
+					String suffix = filePath.substring(filePath.lastIndexOf('.'));
+					fileName = format + ran + System.currentTimeMillis() + suffix;
+//					fileName = filePath.substring(filePath.lastIndexOf(File.separator) + 1); //获取文件名
+//					String extName = filePath.substring(filePath.lastIndexOf(".") + 1);
+					fullPath = basePath + "/" + fileName; //文件全名
+					System.out.println("fullPath图片全名=="+fullPath);
+					fullName = servicePath + "/" + fileName;
+					list.add(fullName);
+					
+					System.out.println("fullName服务器路径="+fullName);
+					if (allowFileSuffix.indexOf(suffix) != -1) {//读取文件
+						try {
+							fileItem.write(new File(fullPath)); //写入流,
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					} else {
+						try {
+							throw new FileUploadException("文件格式不正确");
+						} catch (FileUploadException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+			}//end for循环
+		}
+		List<PhotoInfo> piList = new ArrayList<>(); 
+		PhotoInfo pi = new PhotoInfo();
+		pi.setALBUMID(Integer.valueOf(albumId));
+//		pi.setPHOTODESC(fileName);
+		pi.setPHOTOURL(fullName);
+		piList.add(pi);
+		
+		Map<String, String> map = new HashMap<String, String>();
+		String json = JSONUtil.toJSON(piList);
+		System.out.println("json=="+json);
+		map.put("PHOTOS", json);
+		String result = HttpUtils.getInstance().get("04L", map);
+		
+		/*jsonObj.addProperty("uploadUrl", basePath);
+		jsonArry.add(jsonObj);*/
+//		jsonArry.add(fullName);
+		return list;
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

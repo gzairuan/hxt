@@ -1,0 +1,118 @@
+package com.hinear.hxt.servlet.growup;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.hinear.hxt.entity.News;
+import com.hinear.hxt.entity.UserInfo;
+import com.hinear.hxt.util.EmptyUtils;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+import com.hinear.hxt.util.TransformUtils;
+
+import sun.invoke.empty.Empty;
+
+/**
+ * 
+ * @author szs
+ * @time 2017年8月4日 上午9:56:03
+ * @version 1.0
+ * 描述：生活剪影 LifeSketchServlet
+ */
+@WebServlet("/lifeSketchServlet")
+public class LifeSketchServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		//操作标识
+		String optFlag = request.getParameter("optFlag");
+		String result = null; //接口返回结果=
+		HttpSession session = request.getSession();
+		UserInfo userInfo = null;
+		if(session != null){//判断session
+			userInfo = (UserInfo) session.getAttribute("userInfo");
+			if(userInfo != null){
+				String sid = String.valueOf(userInfo.getSID()); //学校ID
+				int userId = userInfo.getUSERID();//用户id
+				
+				Map<String, String> map = new HashMap<String, String>();
+				//操作
+				if("init".equals(optFlag)){//初始化
+					int limit = TransformUtils.transformInt(request.getParameter("limit")); //每页显示条数
+					int offset = TransformUtils.transformInt(request.getParameter("offset"));
+					System.out.println(limit + "<-->"+ offset);
+					if(limit == 0){
+						limit = 10;
+					}
+					int pageIndex = offset / limit; //请求记录开条数始的下标
+					String qrtCid = request.getParameter("classesId");
+					String startDate = request.getParameter("startDate");
+					String endDate = request.getParameter("endDate");
+					String stuname = request.getParameter("stuname");
+					
+					map.put("PageSize", limit + "");
+					map.put("PageIndex", pageIndex + "");
+					map.put("SID", sid);
+					if(!EmptyUtils.stringIsEmpty(qrtCid) && qrtCid != "0"){
+						map.put("CID", qrtCid);
+					}
+					if(!EmptyUtils.stringIsEmpty(startDate)){
+						map.put("SDATE", startDate);
+					}
+					if(!EmptyUtils.stringIsEmpty(endDate)){
+						map.put("EDATE", endDate);
+					}
+					if(!EmptyUtils.stringIsEmpty(stuname)){
+						map.put("STUDENTNAME", stuname);
+					}
+					
+					result = HttpUtils.getInstance().get("30", map);
+					
+				}else if("initStudent".equals(optFlag)){//初始化班级信息
+//					String userId = String.valueOf(userInfo.getUSERID());//用户id
+					map.put("USERID", userId+"");
+					result = HttpUtils.getInstance().get("45", map);
+				}else if("add".equals(optFlag)){
+					String studentId = request.getParameter("studentId");//学生ID
+					String content = request.getParameter("content");//内容
+					//登录者班级ID
+					String cid = request.getParameter("cid");
+					System.out.println("cid=="+cid);
+					News news = new News();
+					news.setNEWSTYPEID(3);
+					news.setSENDID(userId);
+					news.setCLASSESID(Integer.valueOf(cid));
+					news.setSTUDENTID(Integer.valueOf(studentId));
+					news.setCONTENT(content);
+					String jsonNews= JSONUtil.toJSON(news);
+					map.put("JOBNEWS", jsonNews);
+					result = HttpUtils.getInstance().get("30A", map);
+					System.out.println("发布结果："+result);
+				}
+				else if("delete".equals(optFlag)){//删除
+					String newId = request.getParameter("newId");
+					System.out.println("newId="+newId);
+					if(newId != null){
+						map.put("ID", newId);
+						result = HttpUtils.getInstance().get("30B", map);
+					}
+				}
+			}
+		}
+		
+		response.getWriter().print(result);
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

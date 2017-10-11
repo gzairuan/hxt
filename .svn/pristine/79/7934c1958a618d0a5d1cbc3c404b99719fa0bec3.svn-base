@@ -1,0 +1,175 @@
+/*
+ * 个人资料
+ * 
+*/
+var rootPath = util.getRootPath();
+var userJson;
+
+/* 个人资料页面信息初始化  */	
+ $(function() {
+	//初始化页面显示
+	initMethod();
+	
+	$.ajax({
+		url: rootPath +'/myselfInitServlet?optFlag=init',
+		success:function(data){
+			var json = $.parseJSON(data);
+			if(json != null){ //初始化值
+				userJson = json[0];
+				$("#uName").val(userJson.REALNAME);
+				$("#uPhone").val(userJson.MOBILE);
+				$("#uEmail").val(userJson.EMAIL);
+				$("#uSignature").val(userJson.SIGNATURE);
+				//需要初始化头像值todo...
+				var photourl =userJson.USERPHOTO;
+				if(photourl == null){
+					$("#imgId").attr('src', '/hxt/img/none.jpg');
+				}else{
+					$("#imgId").attr('src', userJson.USERPHOTO);
+				}
+			}
+		}
+	});
+	
+});
+
+$('#changeImgId').fileinput({
+	language: 'zh', //设置语言
+ 	uploadUrl: rootPath + '/uploadPortraitToService', // 自动上传url, //上传的地址
+	//设置预览图片大小
+ 	showPreview : false, //是否显示预览
+ 	showBrowse: true,
+ 	showUpload: false, //是否显示上传按钮
+	showRemove : false, //显示移除按钮
+    showCaption: false,//是否显示标题
+    showCancel: false,  //
+    resizeImage: false,
+    resizePreference: 'width',
+ 
+	uploadLabel: "上传", ////设置上传按钮的汉字
+    browseClass: "btn btn-primary", //按钮样式     
+    browseIcon: '<i class="fa fa-camera"></i>&nbsp;', //上传按钮图片样式
+    browseLabel: '上传/更换头像', //文件上传按钮描述
+    maxFileCount: 9,/*允许最大上传数，可以多个，当前设置9个*/
+    msgFilesTooMany: "最多只能上传9张图片", 
+    dropZoneTitle: "请通过拖拽图片文件放到这里",
+    dropZoneClickTitle: "或者点击此区域添加图片",
+    browseOnZoneClick: false, //是否点击区域进行选择文件
+    fileActionSettings:{//上传图片动作
+   		showUpload: false, //是否显示单个文件上传按钮
+   		showZoom: true, //是否显示预览按钮
+   		showDrag: false //是否允许拖拽
+    },
+    layoutTemplates:{
+   		progress: ""
+    },
+//                 elErrorContainer: "",
+//                 msgErrorClass: "",//上传错误信息显示
+	allowedFileExtensions : ['jpg', 'png','gif', 'jpeg'],//上传文件格式
+ 	overwriteInitial: false,
+ 	maxFileSize: 1000, //上传文件大小
+ 	maxFilesNum: 9, //上传文件最大个数
+ 	msgFilesTooMany: "最大只能上传9张图片", //上传文件超过最大值提示
+ 	initialCaption: "选择上传图片", //文本框初始话value
+ 	removeFromPreviewOnError: false,
+ 	slugCallback : function(filename) {//处理空格
+        return filename.replace('(', '_').replace(']', '_');
+    }
+}).on('filebatchselected', function (event, data,File, files, id, index) {
+	//选择图片时回显在头像框
+	var r= new FileReader();
+	f=document.getElementById('changeImgId').files[0];
+	r.readAsDataURL(f);
+	r.onload=function  (e) {
+		document.getElementById('imgId').src=this.result;
+	};
+ });
+
+
+//上传前
+$('#changeImgId').on('fileloaded', function(event,  file, previewId, index, reader) {
+    console.log("fileloaded");
+//    debugger;
+});
+
+
+//个人信息编辑
+ function editEventt(){
+	$("#editId").hide();
+	$("#changeDivId").show();
+	$("#submitId").show();
+	$("#cancelId").show();
+	$('input').removeAttr("readonly"); //设置input为可编辑
+	
+};
+
+//个人信息保存
+var saveEvent = function(){
+	var uName = $("#uName").val();
+	var uPhone = $("#uPhone").val();
+	var uEmail = $("#uEmail").val();
+	var uSignature = $("#uSignature").val();
+	var uPhoto = $("#imgId")[0].src; 
+	
+	//选择图片，在表单提交时执行图片上传按钮，把图片上传到服务器端
+    $('#changeImgId').fileinput('upload');	
+    
+    //上传图片成功后执行回调函数 filebatchuploadsuccess fileuploaded
+    $("#changeImgId").on("fileuploaded", function(event, data, previewId, index) {
+    	if(data.response){
+    		var response= data.response, 
+    			files = data.files, 
+    			filenames = data.filenames, //上传文件名
+    			servicePath = response[0].relPath;
+        		debugger;
+        		
+    		var path = servicePath+"/";
+    		var imgUrl = '';
+        		
+    		if(index == 0){
+    			$.each(filenames, function(i, item){ //遍历获取文件名
+    				imgUrl += 'imgUrl=' + path + filenames[i]+"&";
+    				userJson.USERPHOTO = relPath;
+    			});
+    		// 保存表单数据到数据库
+    		debugger;
+    		addNoticeToService(imgUrl);
+    		}
+		}
+    })  //end fileuploaded
+	
+	userJson.REALNAME = uName;
+	userJson.MOBILE = uPhone;
+	userJson.EMAIL = uEmail
+	userJson.SIGNATURE = uSignature;
+//	userJson.USERPHOTO = imgpath;
+	$.ajax({
+		url: rootPath + "/myselfInitServlet",
+		type:"post",
+		dataType:'json',
+		data:{
+			"user": JSON.stringify(userJson),
+			"optFlag": "saveEvent"  // 操作标识
+		},
+		success:function(data){
+			//data.result=='ok'
+			console.info(data);
+			console.log("保存成功");
+		}
+	});
+};
+
+//取消操作
+var cancelEvent = function(){
+	initMethod();
+};
+
+//个人信息初始化页面初始化只显示“编辑”按钮 	
+function initMethod(){
+	$("#editId").show();
+	$("#changeDivId").css('display', 'none');
+	$("#submitId").hide();
+	$("#cancelId").hide();
+	$('input').attr("readonly", "readonly"); //设置input为只读
+	
+};

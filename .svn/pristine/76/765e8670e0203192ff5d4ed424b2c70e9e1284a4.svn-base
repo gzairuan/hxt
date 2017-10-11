@@ -1,0 +1,50 @@
+package com.hinear.hxt.servlet.school;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.hinear.hxt.util.HttpUtils;
+
+/**
+ * 学校简介初始 Servlet
+ * 
+ * @tiem: 2017-6-19
+ * @author szs
+ */
+@WebServlet("/schoolinfoInitServlet")
+public class SchoolinfoInitServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		request.setCharacterEncoding("utf-8");
+//		String sId = "1"; // 默认学校ID
+		String sId = request.getParameter("SID");
+		System.out.println("SID = " + sId);
+		if(sId == null){
+			System.out.println("sid赋值");
+			sId = "1";
+		}
+		System.out.println("sid222=" + sId);
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("SID", sId);
+		String jsonData = HttpUtils.getInstance().get("05", map);
+
+		response.setContentType("text/html;charset=utf-8");
+		response.setCharacterEncoding("utf-8");
+		response.getWriter().print(jsonData);
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

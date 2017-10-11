@@ -1,0 +1,59 @@
+package com.hinear.hxt.servlet.userinfo;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.hinear.hxt.util.HttpUtils;
+
+/**
+ * 
+ * @author szs
+ * @time 2017年6月26日 下午2:50:05
+ * @version 1.0
+ * 描述：个人资料
+ */
+
+@WebServlet("/myselfInitServlet")
+public class MyselfInitServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		System.out.println("MyselfInitServlet(进入该方法)");
+		String userId = request.getParameter("userId");
+		String optFlag = request.getParameter("optflag"); //操作符标识
+		System.out.println("userid="+userId + " flag==" + optFlag);
+		PrintWriter pw = response.getWriter();
+		
+		if(optFlag != null && optFlag.equals("init")){ //初始化
+			Map<String, String> map = new HashMap<String, String> ();
+			map.put("USERID", userId);
+			String jsonData = HttpUtils.getInstance().get("40", map);
+			pw.print(jsonData);;
+		}else if(optFlag != null && optFlag.equals("saveEvent")){//修改保存操作
+			System.out.println("saveEvent(保存方法)");
+			Map<String, String> map = new HashMap<String, String> ();
+			String user = request.getParameter("user");
+			map.put("Users", user);
+
+			String result = HttpUtils.getInstance().get("40A", map);
+			System.out.println(result);
+			pw.write(result);
+		}
+		
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		doGet(request, response);
+	}
+
+}

@@ -1,0 +1,331 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>意见反馈</title>
+<link rel="shortcut icon" href="../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+<!-- 表格 -->
+<link href="../../css/plugins/bootstraptable/bootstrap-table.min.css" rel="stylesheet">
+<!-- 日期选择 -->
+<link href="../../css/plugins/datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet">
+<!-- 窗口 -->
+<link href="../../css/plugins/hxt/box.css" rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<!-- 包装内容 动画 从右方进入 -->
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- 面板 -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h5>意见反馈</h5>
+			</div>
+			<div class="ibox-content">
+				<!-- 查询窗口 -->
+				<div class="form-horizontal" role="form">
+					<div class="col-md-3">
+						<div class="form-group">
+							<label class="col-md-5 control-label" for="queStartDate">开始日期：</label>
+							<div class="col-md-7">
+								<input type="text" id="queStartDate" class="form-control"/>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="form-group">
+							<label class="col-md-5 control-label" for="queEndDate">结束日期：</label>
+							<div class="col-md-7">
+								<input type="text" id="queEndDate" class="form-control"/>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="form-group">
+								<label class="col-md-5 control-label" for="queKeyword">关键字：</label>
+								<div class="col-md-7">
+									<input type="text" id="queKeyword" class="form-control"/>
+								</div>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="form-group">
+							<div class="col-md-5">
+								<a id="btnSearch" type="button" class="btn btn-sm btn-primary"
+									onclick="searchData()">搜索</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- 表格内容 -->
+				<table id="tableSuggetion">
+				</table>
+			</div>
+		</div>
+		<!-- 面板 END -->
+	</div>
+	
+	<!-- table 删除modal -->
+	<div id="detailModal" class="modal fade" role='dialog' tabindex="-1"
+		aria-labelledby="detailModalLabel" data-backdrop="true"
+		aria-hidden="true">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<h5 class="modal-title" id="detailModalLabel">意见详情</h5>
+				</div>
+				<div class="modal-body">
+					<div class="box-body" style="padding: 0px;">
+						<div class="form-horizontal" role="form">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label class="col-md-4 control-label" for="detailTitle">标题：</label>
+									<div class="col-md-8">
+										<input type="text" id="detailTitle" class="form-control" readonly="readonly"/>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-md-4 control-label" for="detailTime">时间：</label>
+									<div class="col-md-8">
+										<input type="text" id="detailTime" class="form-control" readonly="readonly"/>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div class="form-group">
+									<label class="col-md-4 control-label" for="detailName">反馈者：</label>
+									<div class="col-md-8">
+										<input type="text" id="detailName" class="form-control" readonly="readonly"/>
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-md-4 control-label" for="detailMobile">联系方式：</label>
+									<div class="col-md-8">
+										<input type="text" id="detailMobile" class="form-control" readonly="readonly"/>
+									</div>
+								</div>
+							</div>
+							<div class="col-md-12">
+								<div class="form-group">
+									<label class="col-md-2 control-label" for="detailContent">内容：</label>
+									<div class="col-md-10">
+										<textarea rows="5" id="detailContent" class="form-control" readonly="readonly">
+										</textarea>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	
+	<!-- table 删除modal -->
+	<div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+		aria-labelledby="delModalLabel" data-backdrop="true"
+		aria-hidden="true">
+		<div class="modal-dialog modal-sm" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<h5 class="modal-title" id="delModalLabel" style="color: red">删除
+					</h5>
+				</div>
+				<div class="modal-body">
+					<p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+				</div>
+				<div class="modal-footer">
+					<button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+
+	<!-- 全局js -->
+    <script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+    <script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+    <!-- 表格js -->
+	<script src="../../js/plugins/bootstraptable/bootstrap-table.min.js"></script>
+	<script src="../../js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+	<!-- 日期选择 -->
+	<script src="../../js/plugins/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+	<script src="../../js/plugins/datetimepicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+	<script type="text/javascript">
+		//表格
+		var table = $('#tableSuggetion');
+		
+		//日期控件初始化 (在modal中显示和隐藏的时候会同时调用modal的显示和隐藏事件)
+		$('#queStartDate').datetimepicker({
+			language:  'zh-CN',//语言（需依赖语言包）
+		    format: 'yyyy-mm-dd',//格式
+		    minView:2,//最小精确到天
+		    todayBtn:true,//显示选择当天的按钮
+		    autoclose:true//自动关闭-当选择一个日期之后立即关闭
+		});
+		$('#queEndDate').datetimepicker({
+			language:  'zh-CN',//语言（需依赖语言包）
+		    format: 'yyyy-mm-dd',//格式
+		    minView:2,//最小精确到天
+		    todayBtn:true,//显示选择当天的按钮
+		    autoclose:true//自动关闭-当选择一个日期之后立即关闭
+		});
+		
+		$(function() {
+			//表格初始化
+			tableInit();
+		});
+		
+		function tableInit() {
+			table.bootstrapTable({
+				url : '../../suggestServlet?optFlag=query',//远程请求地址
+				method : 'get',//请求方式
+				dataType : 'json',//接收数据类型
+				//contentType : "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+				striped : true, //是否显示行间隔色
+				//toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+				cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+				sortable : false, //是否启用排序
+				pagination : true, //是否显示分页（*）
+				pageNumber : 1, //初始化加载第一页，默认第一页
+				pageSize : 10, //每页的记录行数（*）
+				pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+				sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+				clickToSelect : true, //是否启用点击选中行
+				uniqueId : 'ID', //每一行的标识（要具有唯一性）
+				queryParams : queryParams,//请求参数
+				columns : [
+						//field对应返回数据中的字段
+						{
+							field : 'REALNAME',
+							title : '反馈者',
+							width : '15%'
+						},
+						{
+							field : 'MOBILE',
+							title : '联系方式',
+							width : '15%'
+						},
+						{
+							field : 'CONTENT',
+							title : '反馈内容',
+							width : '40%'
+						},
+						{
+							field : 'CRETIME',
+							title : '反馈时间',
+							width : '15%',
+							formatter : function(value, row, index) {
+								return getTime(value);
+							}
+						},
+						{									
+							field : 'ID',
+							title : '操作',
+							align : 'center',
+							valign : 'center',
+							width : '15%',
+							formatter : function(value, row, index) {
+								//删除html拼接标签 根据 data-xx来传递数据  xx为自己命名的参数
+								var detail = '<a type="button" title="详情" class="btn btn-info shiny btn-xs purple"'
+									+'data-toggle="modal" data-id="'+value+'" data-target="#detailModal">'
+									+'<i class="fa fa-eye"></i> 详情</a>';
+								//删除html拼接标签
+								var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple"'
+									+'data-toggle="modal" data-id="'+value+'" data-target="#deleteModal">'
+									+'<i class="fa fa-trash-o"></i> 删除</a>';
+								//添加拼接标签以join中的字符串分隔开来
+								return [detail,del].join(' ');
+							},
+						} ],
+				onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+					$(".info").removeClass("info");
+					$(ele).addClass("info");
+				}
+			});
+		};
+		
+		function getTime(value) {
+			if(value == undefined || value == null || value == ''){
+				return value;
+			}
+			var time = value.replace('T',' ');
+			return time;
+		}
+		
+		//查询请求参数对象
+		var searchParams = {};
+		//table数据查询请求参数设置
+		function queryParams(params) {//请求参数
+			params.startDate = searchParams.startDate;
+			params.endDate = searchParams.endDate;
+			params.keyword = searchParams.keyword;
+			return params;
+		};
+		//搜索数据
+		function searchData() {
+			//搜索参数设置
+			searchParams.startDate = $('#queStartDate').val();
+			searchParams.endDate = $('#queEndDate').val();
+			searchParams.keyword = $('#queKeyword').val();
+			//销毁表格 已达到真正的清除当前表格所加载的数据
+			table.bootstrapTable('destroy');
+			//重新创建表格 用于重新加载数据
+			tableInit();
+		};
+		
+		//详情窗口显示监听
+		$('#detailModal').on('show.bs.modal',function(e){
+			var button = $(e.relatedTarget); // 触发该对话框的按钮
+			var id = button.data('id');//获取传递的id(UniqueId)
+			//根据id获取该行的数据-->获取UniqueId标识的行数据
+			var row = table.bootstrapTable('getRowByUniqueId', id);
+			$('#detailTitle').val(row.TITLE);
+			$('#detailName').val(row.REALNAME);
+			$('#detailMobile').val(row.MOBILE);
+			$('#detailTime').val(getTime(row.CRETIME));
+			$('#detailContent').val(row.CONTENT);
+		});
+		
+		//删除窗口显示监听
+		$('#deleteModal').on('show.bs.modal',function(e){
+			var button = $(e.relatedTarget); // 触发该对话框的按钮
+			var id = button.data('id');//获取传递的id(UniqueId)
+			//为删除确定按钮添加点击事件
+			var btnDel = $('#btnDel');
+			btnDel.removeAttr("onclick");//先移除，再添加
+			btnDel.attr('onclick', 'deleteData("' + id + '")');
+		});
+		
+		function deleteData(id) {
+			//post请求删除 第二种传参的例子
+			$.get('../../suggestServlet',{'optFlag':'delete','id':id},function(data){
+				if(data.result=='ok'){
+					//请求成功（这里是删除数据成功）提示且刷新数据
+					table.bootstrapTable('refresh');//刷新表格
+				}else{
+					//失败
+					alert('删除失败！请稍后再试');
+				}
+			},'json');
+			$('#deleteModal').modal('hide');
+		}
+	</script>
+</body>
+</html>

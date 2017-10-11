@@ -1,0 +1,154 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>学校审核</title>
+<link rel="shortcut icon" href="../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+<link href="../../css/plugins/bootstraptable/bootstrap-table.css" rel="stylesheet">
+</head>
+
+<body class="gray-bg">
+	<div id="wrapper wrapper-content animate fadeInRight">
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h4>学校审核</h4>
+			</div>
+			<div class="ibox-content">
+				<div  id="toolbar">
+					<button type="button" id="btnAdd" class="btn btn-primary btn-sm"
+						data-toggle="modal" data-target="#addModal">
+						<span class="fa fa-check-circle-o" aria-hidden="true">审核</span>
+					</button>
+					<button type="button" id="btnAdd" class="btn btn-primary btn-sm"
+						data-toggle="modal" data-target="#addModal">
+						<span class="fa   fa-close" aria-hidden="true">删除</span>
+					</button>
+				</div>
+				
+				<table id="tableSchoolAppl">
+					
+				</table>
+			</div>
+		</div>
+	</div>
+
+<!-- 全局js -->
+<script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+<script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+<!-- 兼容ie9及以下 -->
+<script src="../../js/json2.js"></script>
+<script src="../../js/plugins/bootstraptable/bootstrap-table.js"></script>
+<script src="../../js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+
+<!-- js代码 -->
+<script type="text/javascript">
+var table;
+
+//初始化table
+$(function() {
+	table = $('#tableSchoolAppl').bootstrapTable({
+		url : '../../schoolApplInitServlet',//远程请求地址
+		method : 'post',//请求方式
+		dataType : 'json',//接收数据类型
+		contentType: "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+		striped : true, //是否显示行间隔色
+		toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+		cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+		sortable : false, //是否启用排序
+		pagination : true, //是否显示分页（*）
+		pageNumber : 1, //初始化加载第一页，默认第一页
+		pageSize : 10, //每页的记录行数（*）
+		pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+		sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+		clickToSelect : true, //是否启用点击选中行
+		uniqueId : 'NOTICEID', //每一行的标识（要具有唯一性）
+		/* queryParams : function(params) {
+			params.typeId = typeId;
+			params.sendFlag = $('#sendFlag').val();
+			params.startDate = $('#startDate').val();
+			params.endDate = $('#endDate').val();
+			params.keyword = $('#keyword').val();
+			return params;
+		}, */
+		columns : [
+				//field对应返回数据中的字段
+				{
+					field : 'DOMAINNAME',
+					title : '区域 '
+				},
+				{
+					field : 'SNAME',
+					title : '学校名称'
+				},
+				{
+					field : 'SADDRESS',
+					title : '学校地址'
+				},
+				{
+					field : 'LINKNAME',
+					title : '联系人'
+				},
+				{
+					field : 'MOBILE',
+					title : '联系电话'
+				},
+				{
+					field : 'HANDLESTATE',
+					title : '审核状态',
+					formatter: function(value, row, index){
+						if(value == 0) return "未审核";
+						if(value == 1) return "已审核";
+ 					}
+				},
+				{
+					field : 'CTIME',
+					title : '创建时间',
+					formatter : function(value, row,
+							index) {
+						var time = value.replace('T',' ');
+						return time;
+					}
+				},
+				{
+					field : 'REMARK',
+					title : '备注'
+				},
+				 /* {
+					title : '操作',
+					align : 'center', width:'10%',
+					formatter : function(value, row,
+							index) {
+						//获取当前row内容
+						var id = row.NOTICEID;
+						
+						var detail = '<a type="button" title="详情" class="btn btn-info shiny btn-xs purple" data-id="'+id+'" data-toggle="modal" data-target="#detailModal"><i class="fa fa-eye"></i></a>';
+						if($('#sendFlag').val()=='0'){
+							return detail;
+						}else{
+							var edit = '<a type="button" title="编辑" class="btn btn-primary shiny btn-xs purple" data-id="'+id+'" data-toggle="modal" data-target="#editModal"><i class="fa fa-edit"></i></a>';
+							var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple" onclick="confirmDeleteModal('
+								+ id
+								+ ')" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i></a>';
+							return [edit,detail,del].join(' ');
+						}
+					}
+				}  */
+				], 
+		onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+			$(".info").removeClass("info");
+			$(ele).addClass("info");
+		}
+	});
+});
+</script>
+</body>
+</html>

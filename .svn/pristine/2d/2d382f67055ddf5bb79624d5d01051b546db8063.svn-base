@@ -1,0 +1,8 @@
+;
+
+var menuid = util.getQueryParam('menuid');
+$(function() {
+	if(!util.text.isEmpty(menuid)){
+		console.info('菜单ID:'+menuid);
+	}
+});

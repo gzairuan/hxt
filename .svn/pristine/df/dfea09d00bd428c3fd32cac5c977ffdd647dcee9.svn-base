@@ -1,0 +1,568 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>每周评价</title>
+<link rel="shortcut icon" href="../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+<link href="../../css/plugins/bootstraptable/bootstrap-table.css" rel="stylesheet">
+<link href="../../css/plugins/datetimepicker/bootstrap-datetimepicker.min.css" rel="stylesheet"><!-- 日期控件 -->
+</head>
+
+<body class="gray-bg">
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h3>每周评价</h3>
+			</div>
+			<div class="ibox-content"> <!-- ibox 主体内容 -->
+				<!-- 查询条件 -->
+				<form id="formSearch" class="form-horizontal">
+						<div class="form-group has-feedback" style="margin-top: 15px">
+							<label class="control-label col-sm-2" for="startDate">开始时间：</label>
+							<div class="col-sm-2">
+								<span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+								<input id="startDate" type="text" class="form-control">
+							</div>
+
+							<label class="control-label col-sm-2" for="endDate">结束时间:</label>
+							<div class="col-sm-2">
+								<span class="glyphicon glyphicon-calendar form-control-feedback"></span>
+								<input id="endDate" type="text" class="form-control">
+							</div>
+						</div>
+
+						<div class="form-group" style="margin-top: 15px">
+							<label for="uSchoolId" class="control-label col-sm-2">班级：</label>
+							<div class="col-sm-2">
+								<select id="classesId" name='classesId' class="form-control" >
+									<option value="0">全部</option>
+								</select>
+							</div>
+							<label class="control-label col-sm-2" for="keyword">关键字：</label>
+							<div class="col-sm-2">
+								<input type="text" class="form-control" id="keyword" name="keyword">
+							</div>
+							<div class="col-sm-2" style="text-align: left;">
+								<button type="button" style="margin-left: 90px" id="btn_query"
+									class="btn btn-primary" onclick="searchData()">查询</button>
+							</div>
+						</div>
+					</form>
+				<!-- toolbar 按钮 -->
+				
+				<!-- table 内容主体 -->
+				<div class="row row-lg">
+                    <div class="col-sm-12">
+                        <!-- Example Card View -->
+                        <div class="example-wrap">
+                            <div class="example">
+								<div id="toolbar" class="btn-group">
+									<button id="btn-add" type="button" class="btn btn-sm btn-primary" data-falg="add" data-toggle="modal" data-target="#addOrEditModal" data-flag="add">
+										<span class="fa fa-plus" aria-hidden="true"></span>新增
+									</button>
+								</div>
+								<!-- 表格内容 -->
+                                <table id="healthInfoTable"> 
+                                </table>
+                            </div>
+                        </div>
+                        <!-- End Example Card View -->
+                    </div>
+                </div>
+				
+			</div> <!-- end ibox-content  -->
+		</div>
+	</div>
+	
+	
+	<!-- table 新增 modal -->
+	<div class="modal fade" id="addOrEditModal" tabindex="-1" role="dialog"
+		aria-lablledby="healthModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document"
+			style="width: 50%; margin: 5% auto;">
+			<!-- 会话窗口 -->
+			<div class="modal-content">
+				<!-- 模态框内容 -->
+				<div class="modal-header">
+					<!-- 模态框头 -->
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<!-- 右上角关闭按钮“x” -->
+					<h4 class="modal-title" id="addModalTitle">新增每周评价</h4>
+				</div>
+				<div class="modal-body" style="overflow-y: scroll;">
+					<!-- 模态框主题内容 -->
+					<form id="modalform" class="form-horizontal">
+						
+							<div class="form-group form-inline col-md-9">
+								<select id="cid" name="cid" class="form-control" onchange="studentSelectItem(this.options[this.options.selectedIndex].value)" required>
+									<option>请选择班级</option>
+								</select>
+								<select id="studentId" name="studentId" class="form-control" required>
+									<option>请选择学生</option>
+								</select>
+							</div>
+
+						<div class="col-md-6">
+							<div class="form-group">
+								<label id="cidLabelId" class="col-sm-4 control-label">班级：</label>
+								<div class="col-sm-7">
+									<input  id="cidInputId" type="text" name="" readonly="readonly" class="form-control">
+								</div>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="form-group">
+								<label id="stuLabelId" class="col-sm-5 control-label">学生姓名：</label>
+								<div class="col-sm-7">
+									<input id="stuInputId"  type="text" name="" readonly="readonly" class="form-control">
+								</div>
+							</div>
+						</div>
+
+						<div class="form-group">
+							<textarea rows="10" id="content" name="content" class="form-control notice-content" placeholder="评价内容"></textarea>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button id="btnSave" type="button" class="btn btn-primary">保存</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 评价详情 -->
+	<div class="modal fade" id="detailModal" tabindex="-1" role="dialog"
+		aria-lablledby="healthModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document"
+			style="width: 60%; margin: 5% auto;">
+			<!-- 会话窗口 -->
+			<div class="modal-content">
+				<!-- 模态框内容 -->
+				<div class="modal-header">
+					<!-- 模态框头 -->
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<!-- 右上角关闭按钮“x” -->
+					<h4 class="modal-title" id="addModalTitle">查看评价详情</h4>
+				</div>
+				<div class="modal-body" style="overflow-y: scroll;">
+					<!-- 模态框主题内容 -->
+					<form id="modalform" class="form-horizontal">
+						<div class="col-md-6 col-xs-offset-0">
+							<div class="form-group">
+								<label id="detailcidl" class="col-sm-4 control-label">班级：</label>
+								<div class="col-sm-8">
+									<input  id="detailcid" type="text" name="detailcid" readonly="readonly" class="form-control">
+								</div>
+							</div>
+							<div class="form-group">
+								<label id="sendnamel" class="col-sm-4 control-label">评价人：</label>
+								<div class="col-sm-8">
+									<input  id="sendname" type="text" name="sendname" readonly="readonly" class="form-control">
+								</div>
+							</div>
+						</div>
+						<div class="col-md-6 col-sm-pull-0">
+							<div class="form-group">
+								<label id="detaistuidl" class="col-sm-4 control-label">学生姓名：</label>
+								<div class="col-sm-8">
+									<input id="detaistuid"  type="text" name="" readonly="readonly" class="form-control" ">
+								</div>
+							</div>
+							<div class="form-group">
+								<label id="cretimel" class="col-sm-4 control-label">发布时间：</label>
+								<div class="col-sm-8">
+									<input id="cretime"  type="text" name="cretime" readonly="readonly" class="form-control" ">
+								</div>
+							</div>
+						</div>
+						<div class="col-md-12">
+							<div class="form-group">
+								<label id="contentl" class="col-sm-2 control-label">评价内容：</label>
+								<div class="col-sm-10">
+									<textarea rows="10" id="detcontent" name="content" class="form-control notice-content" placeholder="评价内容" readonly="readonly"></textarea>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- table 删除modal -->
+    <div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+        aria-labelledby="delModalLabel" data-backdrop="true"
+        aria-hidden="true">
+        <div class="modal-dialog" style="width: 20%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <h5 class="modal-title" id="delModalLabel" style="color: red">删除
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+                </div>
+                <div class="modal-footer">
+                   <!--  <span id='deleteButton'></span> -->
+                    <button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal">确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+
+            </div>
+        </div>
+    </div><!-- end deleteModal -->
+
+<!-- 全局js -->
+<script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+<script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+<!-- 兼容ie9及以下 -->
+<script src="../../js/json2.js"></script>
+<script src="../../js/plugins/bootstraptable/bootstrap-table.js"></script>
+<script src="../../js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+<script src="../../js/plugins/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+<script src="../../js/plugins/datetimepicker/locales/bootstrap-datetimepicker.zh-CN.js"></script>
+
+<!-- js -->
+<script type="text/javascript">
+	var table = $('#healthInfoTable');
+	
+	//查询条件：开始日期
+	$('#startDate').datetimepicker({
+	    format: 'yyyy-mm-dd', //日期格式
+	    language: 'zh-CN', // 国际化 为中文
+	    startDate: "2013-02-14 10:00", //开始日期格式
+	    minView: 2, // 精确到2天
+	    todayBtn: true, //显示当天日期
+	    autoclose: true, //选择日期后自动关闭 
+	}).on('hide', function(event) {  
+	    event.preventDefault();  
+	    event.stopPropagation();  
+	    var startTime = event.date;  
+// 	    $('#endDate').datetimepicker('setStartDate',startTime);  
+// 	    $('#endDate').val("");  
+	}); 
+	
+	//查询条件： 结束日期
+	$('#endDate').datetimepicker({
+	    format: 'yyyy-mm-dd', //日期格式
+	    language: 'zh-CN', // 国际化 为中文
+	    startDate: "2013-02-14 10:00", //开始日期格式
+	    minView: 2, // 精确到2天
+	    todayBtn: true, //显示当天日期
+	    autoclose: true, //选择日期后自动关闭 
+	}).on('hide', function(event) {  
+	    event.preventDefault();  
+	    event.stopPropagation();  
+	    var endTime = event.date;  
+// 	    $('#startDate').datetimepicker('setEndDate',endTime);  
+	});
+	
+	
+	$(function(){
+		//初始化table
+		initTable();
+		classesIdSelectItem($('#classesId'));
+	});
+	
+	//初始化Table
+	function initTable(){
+        table.bootstrapTable({
+             url:'../../weeklyEvaluateServl',//远程请求地址
+             method:'post',//请求方式
+             type: 'json', //数据类型 
+             contentType: "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+             striped: true,      //是否显示行间隔色
+             toolbar: "#toolbar",  //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+             cache: false,      //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+             sortable: false,      //是否启用排序
+             pagination: true,     //是否显示分页（*）
+             pageNumber:1,      //初始化加载第一页，默认第一页
+             pageSize: 10,      //每页的记录行数（*）
+             pageList: [10, 25, 50],  //可供选择的每页的行数（*）
+             sidePagination: "server",   //分页方式：client客户端分页，server服务端分页（*）
+             clickToSelect: true,    //是否启用点击选中行
+             uniqueId:'NEWID',	//每一行的标识（要具有唯一性）
+             queryParams: queryParams, //定义请求参数
+             columns : [
+					//field对应返回数据中的字段
+					{
+						checkbox:true
+					},
+					{
+						field : 'SENDNAME',
+						title : '评价人',
+						width: '10%'
+					},
+					{
+						field : 'STUDENTNAME',
+						title : '学生姓名',
+						width: '10%'
+					},
+					{
+						field : 'CLASSESNAME',
+						title : '班级 '
+					},
+					{
+						field : 'CONTENT',
+						title : '内容',
+					},
+					{
+						field : 'CRETIME',
+						title : '发布时间',
+						width: '14%',
+						formatter : function(value, row, index) {
+							var time = value.replace('T',' ');
+							return time;
+						}
+					},
+ 					{
+						title : '操作',
+						align : 'center', width:'17%',
+						formatter : function(value, row, index) {
+							//获取当前row内容
+							var newId = row.NEWID;
+							var edit = '<a type="button" title="修改" class="btn btn-primary shiny btn-xs purple" data-id="'+ newId +'" data-flag="edit" data-toggle="modal" data-target="#addOrEditModal"><i class="fa fa-edit">修改</i></a>&nbsp;';
+							var detail = '<a type="button" class="btn btn-info shiny btn-xs purple" data-id="'+ newId +'" data-clasname="'+row.CLASSESNAME+'" data-stuname="'+row.STUDENTNAME+'" data-sendname="'+row.SENDNAME+'" data-cretime="'+row.CRETIME+'" data-content="'+row.CONTENT+'" data-flag="detail" data-toggle="modal" data-target="#detailModal" >'+
+											'<i class="fa fa-eye"></i>&nbsp;查看</a>&nbsp';
+							var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple" onclick="confirmDeleteModal('+ newId + ')" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i>删除</a>';
+							return [edit, detail, del].join('');
+						}
+					}
+					], 
+             onClickRow:function(row,ele,fileid){//table选中行设置背景色
+             	$(".info").removeClass("info");
+             	$(ele).addClass("info");
+             }
+         });
+     };
+     
+     var searchParams = {
+    		 optFlag: "init",
+    		 typeId: "2"
+     };
+     
+     //init Table 传递参数
+     function queryParams(params){
+    	 params.optFlag = searchParams.optFlag;
+    	 params.typeId = searchParams.typeId;
+    	 params.startDate = searchParams.startDate;
+    	 params.endDate = searchParams.endDate;
+    	 params.cid = searchParams.cid;
+    	 params.keyword = searchParams.keyword;
+    	 return params;
+     }
+     
+   //初始化班级下拉选择
+ 	function classesIdSelectItem(e) {
+ 		if(e && e[0].length==1){
+ 			//清空所有的option
+ 			e.empty();
+ 			e.append('<option value="0" selected>全部</option>');
+ 			$.ajax({
+ 				url: '../../queryClassServlet',
+ 				success: function(data){
+ 					var jsonObj=eval("("+data+")");  
+ 			        $.each(jsonObj, function (i, item) {  //循环json，添加下拉标签
+ 			            e.append('<option value="'+item.CLASSESID+'">'+item.CLASSESNAME+'</option>'); 
+ 			        });  
+ 				}
+ 			});
+ 		}
+ 	}
+     
+     //查询条件
+     function searchData(){
+    	 searchParams.startDate = $('#startDate').val();
+    	 searchParams.endDate = $('#endDate').val();
+    	 searchParams.cid = $('#classesId').val();
+    	 searchParams.keyword = $('#keyword').val();
+    	 table.bootstrapTable('destroy');//先要将table销毁，否则会保留上次加载的内容
+ 		 //重新初使化表格。
+ 		 initTable();
+     }
+     
+  	var modalForm = $('#modalform');
+  	
+  	// 打开时执行：新增/修改操作
+ 	$('#addOrEditModal').on('show.bs.modal', function(event){
+ 		var button = $(event.relatedTarget); //获取触发目标事件按钮
+ 		var optFlag = button.data('flag'); //获取按钮点击事件传给modal的 data参数标识
+ 		var btnSave = $('#btnSave');
+ 		var modal = $(this); //获取当前的modal
+ 		classesIdSelectItem($('#cid'));
+ 		
+ 		if(optFlag == "add"){//新增
+ 			//初始化下拉框、
+ 			modal.find('.modal-title').text('新增学生每周评价'); //设置modaltitle
+ 			modalForm[0].reset();
+ 			var e = $('#studentId');
+ 			e.empty();
+			e.append('<option value="0" selected>请选择学生</option>');
+//  			classesIdSelectItem($('#cid'));
+			$('#cid').show();
+ 			$('#studentId').show();
+			$('#cidLabelId').hide();
+			$('#stuLabelId').hide();
+ 			$('#cidInputId').hide();
+ 			$('#stuInputId').hide();
+ 			
+ 			btnSave.removeAttr("onclick"); 
+ 			btnSave.attr("onclick", "addEvaluateForStu('"+optFlag+"')"); //添加保存事件 TODO...
+ 		}else if(optFlag == "edit"){//修改
+ 			modal.find('.modal-title').text('修改学生每周评价'); //设置modaltitle
+ 			var newId = button.data("id");
+ 			var row = table.bootstrapTable('getRowByUniqueId', newId);  
+			
+ 			studentSelectItem(row.CLASSESID);
+ 			console.info(row.CLASSESID + "  " + row.STUDENTID);
+ 			
+ 			$('#cidLabelId').show();
+			$('#stuLabelId').show();
+			$('#cidInputId').show();
+ 			$('#stuInputId').show();
+ 			
+ 			$('#cid').hide();
+ 			$('#studentId').hide();
+ 			
+ 			$('#cidInputId').val(row.CLASSESNAME);
+ 			$('#stuInputId').val(row.STUDENTNAME);
+ 			$('#content').val(row.CONTENT);
+ 			//移除点击事件
+			btnSave.removeAttr("onclick");
+			//添加编辑事件
+			btnSave.attr('onclick','editSubmit('+ newId +', "'+ row.CLASSESID +'", "'+row.STUDENTID+'")');
+ 		}else{//查看详情
+ 			
+ 		}
+ 	});
+     
+  	//下拉选择班级级联更新学生信息cid为班级ID
+	function studentSelectItem(cid){
+		console.info("value="+cid);
+		var e = $('#studentId');
+		if(cid != 0){
+			//清空所有的option
+			e.empty();
+// 			e.append('<option value="0" selected>请选择学生</option>');
+			$.ajax({
+				url: '../../healthInfoServlet',
+				data: {
+					optFlag: "classesStu",
+					cid: cid
+				},
+				success: function(data){
+					var jsonObj=eval("("+data+")");  
+					var row = jsonObj.rows;
+					console.info(row);
+			        $.each(row, function (i, item) {  //循环json，添加下拉标签
+			            e.append('<option value="'+item.STUDENTID+'">'+item.STUDENTNAME+'</option>'); 
+			        });  
+				}
+			});
+		}else{ //清空
+			e.empty();
+			e.append('<option value="0" selected>请选择学生</option>');
+		}
+	}
+  	
+  	//新增评价
+  	function addEvaluateForStu(add){
+  		$.ajax({
+  			url: '../../weeklyEvaluateServl',
+  			data: modalForm.serialize() + "&optFlag=" + add,
+  			success: function(data){
+  				var json = JSON.parse(data);
+            	if(json.result=="ok"){
+            		alert("操作成功！");
+            	}else{
+            		alert("操作失败！");
+            	}
+    			table.bootstrapTable('refresh');
+  			}
+  		});
+  		$('#addOrEditModal').modal('hide');//隐藏modal 
+  	}
+  	
+  	//修改
+  	function editSubmit(newId, cId, stuId){
+  		$.ajax({
+  			url: '../../weeklyEvaluateServl',
+  			data: modalForm.serialize() + "&optFlag=edit" + "&newsId="+ newId + "&cid=" + cId + "&stuId="+stuId,
+  			success: function(data){
+  				var json = JSON.parse(data);
+            	if(json.result=="ok"){
+            		alert("操作成功！");
+            	}else{
+            		alert("操作失败！");
+            	}
+    			table.bootstrapTable('refresh');
+  			}
+  		});
+  		$('#addOrEditModal').modal('hide');//隐藏modal 
+  	}
+  	
+  	//查看详情
+  	$('#detailModal').on('show.bs.modal', function(event){
+  		var button = $(event.relatedTarget);
+  		var clsname = button.data("clasname"),
+  			stuname = button.data("stuname"),
+  			sendname = button.data("sendname"),
+  			cretime = button.data("cretime");
+  			content = button.data("content");
+  			
+  		$('#detailcid').val(clsname);
+  		$('#sendname').val(sendname);
+  		$('#detaistuid').val(stuname);
+  		$('#cretime').val(cretime);
+  		$('#detcontent').val(content);
+  	});
+  	
+  	/*table 删除按钮*/
+    function confirmDeleteModal(id){
+    	var btnDel = $('#btnDel');
+    	btnDel.removeAttr("onclick");
+    	btnDel.attr('onclick', 'deleteData(' + id + ')');
+    };     
+    
+    /*modal 确认删除按钮*/
+    function deleteData(id){
+    	console.info(id);
+      $.ajax({
+        url: '../../weeklyEvaluateServl',
+        data:{
+            newId: id,
+            optFlag: "delete"
+        },
+        success:function(data){
+        	var json = JSON.parse(data);
+        	if(json.result=="ok")
+        		alert("操作成功！");
+        	else
+        		alert("操作失败！");
+        	
+			table.bootstrapTable('refresh'); //刷新表格
+            }
+        });
+    };
+</script>
+
+</body>
+</html>

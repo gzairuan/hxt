@@ -1,0 +1,78 @@
+package com.hinear.hxt.servlet.school;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.hinear.hxt.entity.FoodsDef;
+import com.hinear.hxt.entity.News;
+import com.hinear.hxt.entity.NoticeInfo;
+import com.hinear.hxt.entity.UserInfo;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+import com.hinear.hxt.util.TransformUtils;
+
+/**
+ * 新增食谱选项数据
+ */
+@WebServlet("/AddFoodsServlet")
+public class AddFoodsServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 参数 title标题 content内容 typeid类型id {@link NoticeInfo#TYPE_CLASS}
+	 * 
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// 获取session，
+		HttpSession session = request.getSession();
+		Object userBean = session.getAttribute("userBean");
+		if (userBean != null) {
+			// 获取从界面传输过来的参数值
+			String editType = request.getParameter("addType");
+			String editName = request.getParameter("addName");
+			String editSeq = request.getParameter("addSeq");
+			// 解析Json字符串转换成一个实体类
+			UserInfo userInfo = JSONUtil.parseJSON((String) userBean, UserInfo.class);
+			FoodsDef def = new FoodsDef();
+			def.setDEFNAME(editName);
+			def.setDEFTYPE(editType);
+			def.setSID(userInfo.getSID());
+			def.setSEQ(editSeq);
+			// 将一个实体类转换成Json字符串
+			String defJson = JSONUtil.toJSON(def);
+			System.out.println(defJson);//{""}
+			
+			// 调用真实接口
+			Map<String, String> params = new HashMap<>();
+			// params.put("JOBNEWS", jsonNews);
+			params.put("JOB_DEFTYPE", defJson);
+			String result = HttpUtils.getInstance().get("B39", params);
+
+			PrintWriter pw = response.getWriter();
+			pw.write(result);
+		}
+
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

@@ -1,0 +1,152 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getContextPath();
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>个人资料</title>
+<link rel="shortcut icon" href="<%=basePath%>/icons/favicon.ico"> 
+<link href="<%=basePath%>/css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="<%=basePath%>/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="<%=basePath%>/css/animate.css" rel="stylesheet">
+<link href="<%=basePath%>/css/style.css?v=4.1.0" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/upload/fileinput.min.css" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/bootstrapvalidator/bootstrapValidator.min.css" rel="stylesheet">
+<style type="text/css">
+.avatar-container {
+    border-radius: 6px;
+    width: 13%;
+    height: 13%;
+    margin: 0 auto;
+    margin-left: 30%;
+}
+
+.avatar-img {
+    margin: 2px;
+    width: 160px;
+    height: 160px;
+    text-align: center;
+    align: center;
+    border-radius: 50%;
+    padding: 3px;
+    border: 3px solid #d2d6de;
+}
+
+.btn1-camera {
+    border: 0px solid gray;
+    background-color: #fff;
+    color: gray;
+}
+
+.btn1-camera:hover {
+    background-color: gray;
+    color: #fff;
+}
+
+
+</style>
+</head>
+
+<body class="gray-bg">
+	<div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="ibox float-e-margins">
+					<div class="ibox-title">
+						<h3>个人资料</h3>
+						<div class="ibox-tools">
+						</div>
+					</div>
+					<div class="ibox-content" id="myselfCenterId">
+						<form action="" class="form-horizontal mt" id="myselfForm" enctype="multipart/form-data" method="post">
+							<div class="form-group">
+								<label class="col-sm-3 control-label">姓名：</label>
+								<div class="col-sm-3">
+									<input id="uName" name="uName"  type="text"
+										class="form-control" required="required" aria-required="true" readonly="readonly">
+								</div>
+								<button type="button" class="btn btn-sm btn-primary" id="editId" onclick="editEventt()"><i class="fa fa-edit"></i><span>编辑</span></button>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-3 control-label">电话：</label>
+								<div class="col-sm-3">
+									<input id="uPhone" name="uPhone" type="text" class="form-control" required readonly="readonly">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-3 control-label">邮箱：</label>
+								<div class="col-sm-3">
+									<input id="uEmail" name="uEmail" type="email"
+										class="form-control" required aria-required="true" readonly="readonly">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-sm-3 control-label">昵称：</label>
+								<div class="col-sm-3">
+									<input id="uSignature" name="uSignature"  type="text"
+										class="form-control" aria-required="true" readonly="readonly">
+								</div>
+							</div>
+							<!-- 用户头像上传 -->
+							<div class="form-group">
+								<label class="col-sm-3 control-label col-sm-offset-0" style="margin-top: 5%;">头像：</label>
+								<div class="avatar-container text-center ">
+									<img id="imgId" src="" onerror="this.src='<%=basePath%>/img/none.jpg'" class="avatar-img">
+								</div>
+								<div class="form-group col-sm-3" id="changeDivId" style="margin-left: 30%;">
+									<input type="file" id="changeImgId" class="file" value="选择头像">
+									
+									<!-- <div class="fileinput fileinput-new" data-provides="fileinput">
+									  <div class="fileinput-preview thumbnail" data-trigger="fileinput" style="width: 200px; height: 150px;"></div>
+									  <div>
+									    <span class="btn btn-default btn-file"><span class="fileinput-new">Select image</span><span class="fileinput-exists">Change</span><input type="file" name="..."></span>
+									    <a href="#" class="btn btn-default fileinput-exists" data-dismiss="fileinput">Remove</a>
+									  </div>
+									</div> -->
+									<!-- <button type="button" class="file btn btn-sm btn-camera" data-btn-type="upload">
+										<i class="fa fa-camera">&nbsp;上传/更改头像</i>
+									</button> -->
+								</div> 
+							</div>
+							
+							
+							<div class="form-group">
+                                <div class="col-sm-4 col-sm-offset-3" style="margin-left: 30%;">
+                                	
+                                    <button id="submitId" type="button" class="btn btn-primary" onclick="saveEvent()">提交</button>
+                                    	&nbsp;&nbsp;&nbsp;&nbsp;
+                                    <button class="btn btn-primary" type="button" id="cancelId" onclick="cancelEvent()">取消</button>
+                                </div>
+                            </div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<!-- 全局js -->
+<script src="<%=basePath%>/js/jquery-3.2.1.min.js?v=3.2.1"></script>
+<script src="<%=basePath%>/js/bootstrap.min.js?v=3.3.7"></script>
+<!-- 兼容ie9及以下 -->
+<script src="<%=basePath%>/js/json2.js"></script>
+<!-- Prettyfile实现文件上传 -->
+<script src="<%=basePath%>/js/plugins/upload/fileinput.js"></script>
+<script src="<%=basePath%>/js/plugins/upload/zh.js"></script>
+
+<script src="<%=basePath%>/js/plugins/toastr/toastr.min.js"></script>
+<script src="<%=basePath%>/js/plugins/bootstrapvalidator/bootstrapValidator.min.js?v=0.5.3"></script>
+
+<script src="<%=basePath%>/js/common/util.js"></script>
+<script src="<%=basePath%>/js/common/util-table.js"></script>
+<script src="myselfCenter.js?v=1.2"></script>
+<script src="<%=basePath%>/js/common/role-handler.js"></script>
+</body>
+</html>

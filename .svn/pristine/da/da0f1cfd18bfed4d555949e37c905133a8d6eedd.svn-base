@@ -1,0 +1,91 @@
+package com.hinear.hxt.servlet.classes.course;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.hinear.hxt.entity.Lesson;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+import com.hinear.hxt.util.TransformUtils;
+
+/**
+ * Servlet implementation class SubjectServlet
+ */
+@WebServlet("/courseServlet")
+public class CourseServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		if (session != null && session.getAttribute("userInfo") != null) {
+			PrintWriter pWriter = response.getWriter();
+			String flag = request.getParameter("optFlag");
+			Map<String, String> params = new HashMap<>();
+			switch (flag) {
+			case "query": {
+				String cid = request.getParameter("cid");
+				String tid = request.getParameter("tid");
+				params.put("CID", cid);
+				params.put("TID", tid);
+				String result = HttpUtils.getInstance().get("C3", params);
+				pWriter.write(result);
+			}
+				break;
+			case "edit": {
+				String week = request.getParameter("weekday");
+				int weekday = 0;
+				switch (week) {
+				case "mon":
+					weekday = 1;
+					break;
+				case "tues":
+					weekday = 2;
+					break;
+				case "wed":
+					weekday = 3;
+					break;
+				case "thur":
+					weekday = 4;
+					break;
+				case "fri":
+					weekday = 5;
+					break;
+				case "sat":
+					weekday = 6;
+					break;
+				case "sun":
+					weekday = 7;
+					break;
+				}
+				int cid = TransformUtils.transformInt(request.getParameter("cid"));
+				int tid = TransformUtils.transformInt(request.getParameter("tid"));
+				int subjectid = TransformUtils.transformInt(request.getParameter("subjectid"));
+				int tqid = TransformUtils.transformInt(request.getParameter("tqid"));
+				int wcid = TransformUtils.transformInt(request.getParameter("wcid"));
+				Lesson lesson = new Lesson(cid, subjectid, tid, wcid, tqid, weekday);
+				params.put("COURSE", JSONUtil.toJSON(lesson));
+				String result = HttpUtils.getInstance().post("C3A", params);
+				pWriter.write(result);
+			}
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
+}

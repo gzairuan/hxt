@@ -1,0 +1,72 @@
+package com.hinear.hxt.servlet.classes;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import com.hinear.hxt.util.EmptyUtils;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.TransformUtils;
+
+/**
+ * Servlet implementation class ColockListServlet
+ */
+@WebServlet("/clockListServlet")
+public class ClockListServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// 获取每页条数
+		int pageSize = TransformUtils.transformInt(request.getParameter("limit"));// 每页显示的条数
+		if (pageSize == 0) {
+			pageSize = 10;
+		}
+
+		// 获取当前页第一条数据的下标
+		int offset = TransformUtils.transformInt(request.getParameter("offset"));// 当前页第一条数据的下标（从0开始）
+		// 算出当前页码
+		int pageIndex = offset / pageSize;
+		Map<String, String> map = new HashMap<>();// 接口请求参数
+		String startDate = request.getParameter("startDate");// 开始日期
+		String endDate = request.getParameter("endDate");// 结束日期
+		String classId = request.getParameter("classId");// 选择的班级
+		String stuNo = request.getParameter("stuNo");// 学号
+		String name = request.getParameter("stuName");// 姓名
+		String status = request.getParameter("status");// 状态
+		System.out.println("startDate==" + startDate + ";endDate==" + endDate + ";stuNo==" + stuNo);
+		System.out.println("classId=" + classId + ";name==" + name + ";status==" + status);
+		map.put("PageSize", pageSize + "");
+		map.put("PageIndex", pageIndex + "");
+		map.put("CIDS", classId == null ? "0" : classId);
+		if (!EmptyUtils.stringIsEmpty(startDate)) {
+			map.put("SDATE", startDate);
+		}
+		if (!EmptyUtils.stringIsEmpty(endDate)) {
+			map.put("TDATE", endDate);
+		}
+		// 开始接口请求数据
+		String jsonData = HttpUtils.getInstance().get("24", map);
+		// 返回数据
+		response.getWriter().print(jsonData);
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+	 *      response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

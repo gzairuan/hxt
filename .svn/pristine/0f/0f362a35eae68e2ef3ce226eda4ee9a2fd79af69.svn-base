@@ -1,0 +1,130 @@
+package com.hinear.hxt.servlet.growup;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import com.hinear.hxt.entity.News;
+import com.hinear.hxt.entity.UserInfo;
+import com.hinear.hxt.util.EmptyUtils;
+import com.hinear.hxt.util.HttpUtils;
+import com.hinear.hxt.util.JSONUtil;
+import com.hinear.hxt.util.TransformUtils;
+
+/**
+ * 
+ * @author szs
+ * @time 2017年8月1日 上午11:12:25
+ * @version 1.0
+ * 描述：每周评价servlet
+ */
+@WebServlet("/weeklyEvaluateServl")
+public class WeeklyEvaluateServl extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+
+	
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String optFlag = request.getParameter("optFlag"); //操作标记
+		System.out.println("optFlag="+optFlag);
+		String result = null;
+		int limit = TransformUtils.transformInt(request.getParameter("limit"));
+		int offset = TransformUtils.transformInt(request.getParameter("offset"));
+		
+		int pageSize = 10;
+		int pageIndex = 0;
+		if(limit == 0){
+			limit = 10;
+		}
+		pageIndex = offset / pageSize;
+		Map<String, String> map = new HashMap<String, String>();
+		HttpSession session = request.getSession();
+		UserInfo userInfo = (UserInfo) session.getAttribute("userInfo");
+		if(userInfo==null){//session 过期
+			System.err.println("session过期了");
+			request.getRequestDispatcher("/login.jsp").forward(request, response);  //跳转到登录页面
+		}else{
+			News news = new News();
+			
+			if("init".equals(optFlag)){//初始化
+				
+				String cid = userInfo.getCLASSESID() + "";
+				//查询条件
+				String startDate = request.getParameter("startDate");
+				String endDate = request.getParameter("endDate");
+				String queryCid = request.getParameter("cid");
+				String keyword = request.getParameter("keyword");
+				System.out.println("关键字："+keyword);
+				
+				
+				map.put("PageIndex", pageIndex + "");
+				map.put("PageSize", pageSize + "");
+				map.put("SID", userInfo.getSID() + "");
+				if(!EmptyUtils.stringIsEmpty(cid)){
+					map.put("CID", cid);
+				}
+				if(!EmptyUtils.stringIsEmpty(startDate)){
+					map.put("STARTDAATE", startDate);
+				}
+				if(!EmptyUtils.stringIsEmpty(endDate)){
+					map.put("ENDDATE", endDate);
+				}
+				if(!EmptyUtils.stringIsEmpty(queryCid)){
+					map.put("CID", queryCid);
+				}
+				if(!EmptyUtils.stringIsEmpty(keyword)){
+					map.put("KEYWORD", keyword);
+				}
+				result = HttpUtils.getInstance().get("32", map);
+			}else if("add".equals(optFlag)){//新增
+				int userId = userInfo.getUSERID(); //用户ID
+				String cid = request.getParameter("cid"); //班级ID
+				String studentId = request.getParameter("studentId"); //学生ID
+				String content = request.getParameter("content"); //内容
+				System.out.println("content="+content+ " studentId= " +studentId + "  cid=="+cid);
+				
+				if(!cid.equals("0") &&  !studentId.equals("0")){
+					news.setNEWSTYPEID(2);
+					news.setSENDID(userId);
+					news.setCLASSESID(TransformUtils.transformInt(cid));
+					news.setSTUDENTID(TransformUtils.transformInt(studentId));
+					news.setCONTENT(content);
+				}
+				String jsonNews = JSONUtil.toJSON(news);
+				map.put("JOBNEWS", jsonNews);
+				result = HttpUtils.getInstance().get("32A", map);
+			}else if("edit".equals(optFlag)){ //修改
+				String cid = request.getParameter("cId"); //班级id
+				String stuId = request.getParameter("stuId"); //学生id
+				String content = request.getParameter("content");  //内容
+				String newId = request.getParameter("newsId"); //评价信息ID
+				System.out.println("内容："+content+ " id=="+newId);
+//				news.setCLASSESID(TransformUtils.transformInt(cid));
+//				news.setSTUDENTID(TransformUtils.transformInt(stuId));
+				news.setNEWID(TransformUtils.transformInt(newId));
+				news.setCONTENT(content);
+				
+				String jsonNews = JSONUtil.toJSON(news);
+				map.put("JOBNEWS", jsonNews);
+				result = HttpUtils.getInstance().get("32C", map);
+			}else if("delete".equals(optFlag)){
+				String newId = request.getParameter("newId");
+				System.out.println(newId);
+				map.put("ID", newId);
+				result = HttpUtils.getInstance().get("32B", map);
+			}
+		}
+		response.getWriter().print(result);;
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+}

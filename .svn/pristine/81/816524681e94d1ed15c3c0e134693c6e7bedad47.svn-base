@@ -1,0 +1,321 @@
+<%@page import="com.hinear.hxt.entity.News"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>食谱选项</title>
+<link rel="shortcut icon" href="../../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css" rel="stylesheet">
+<!-- 表格 -->
+<link href="../../css/plugins/bootstraptable/bootstrap-table.min.css"
+	rel="stylesheet">
+</head>
+<body class="gray-bg">
+	<!-- 包装内容 动画 从右方进入 -->
+	<div class="wrapper wrapper-content animated fadeInRight">
+		<!-- 面板 -->
+		<div class="ibox float-e-margins">
+			<div class="ibox-title">
+				<h5>食谱选项</h5>
+			</div>
+			<div class="ibox-content">
+				<!-- 表格列表主窗体 -->
+				<!-- 表格上班按钮（新增等）的工具条 -->
+				<div id="toolbar">
+					<button class="btn btn-sm btn-primary" data-toggle="modal"
+						data-target="#addModal">
+						<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
+					</button>
+				</div>
+				<!-- 表格内容 -->
+				<table id="tableLog">
+				</table>
+			</div>
+		</div>
+		<!-- 面板 END -->
+	</div>	
+	<!-- table 新增 modal -->
+	<div class="modal fade" id="addModal" tabindex="-1" role="dialog"
+		aria-lablledby="addModalLabel" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<!-- 会话窗口 -->
+			<div class="modal-content">
+				<!-- 模态框内容 -->
+				<div class="modal-header">
+					<!-- 模态框头 -->
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<!-- 右上角关闭按钮“x” -->
+					<h5 class="modal-title" id="addModalTitle">新增食谱选项</h5>
+				</div>
+				<div class="modal-body">
+					<!-- 模态框主题内容 -->
+					<form id="addForm">		
+						<div class="form-group">
+							<label for="addType" class="control-label">选项编号</label>
+							<input name="addType" type="text" class="form-control" id="addType"
+								placeholder="请输入标题">
+						
+						</div>
+						<div class="form-group">
+							<label for="addName" class="control-label">选项名称</label> 
+							<input name="addName" type="text" class="form-control" id="addName"
+								placeholder="请输入标题">
+						</div>
+						<div class="form-group">
+							<label for="addSeq" class="control-label">排序，整型</label>
+							<input name="addSeq" class="form-control" id="addSeq"
+								type="text" placeholder="请输入内容"></input>
+						</div>
+					</form>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" onclick="addSaveData()">保存</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>	
+	<!-- table 编辑 modal -->
+	<div class="modal fade" id="editModal" tabindex="-1" role="dialog"
+		aria-lablledby="editModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<!-- 回话窗口 -->
+			<div class="modal-content">
+				<!-- 模态框内容 -->
+				<div class="modal-header">
+					<!-- 模态框头 -->
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<!-- 右上角关闭按钮“x” -->
+					<h5 class="modal-title" id="editModalLabel">食谱选项编辑</h5>
+				</div>
+				<div class="modal-body">
+					<!-- 模态框主题内容 -->
+					<form id="editForm">
+						<div class="form-group">
+							<label for="editType" class="control-label">选项编号</label>
+							<input name="editType" class="form-control food-deftype" id="editType"
+							type="text" placeholder="请输入内容">
+						</div>
+						<div class="form-group">
+							<label for="nameId" class="control-label">选项名称</label>
+							<input name="editName" class="form-control food-defname" id="editName"
+							type="text" placeholder="请输入内容">
+						</div>
+						<div class="form-group">
+							<label for="seqId" class="control-label">排序，整型</label>
+							<input name="editSeq" class="form-control food-seq" id="editSeq"
+							type="text" placeholder="请输入内容">
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button id="btnEditOk" type="button" class="btn btn-primary">确认</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+				</div>
+			</div>
+		</div>
+	</div>	
+	<!-- table 删除modal -->
+	<div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+		aria-labelledby="delModalLabel" data-backdrop="true"
+		aria-hidden="true">
+		<div class="modal-dialog modal-sm" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">&times;</button>
+					<h5 class="modal-title" id="delModalLabel" style="color: red">删除
+					</h5>
+				</div>
+				<div class="modal-body">
+					<p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+				</div>
+				<div class="modal-footer">
+					<!--  <span id='deleteButton'></span> -->
+					<button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	<!--Modal ends here--->
+	<!-- 全局js -->
+    <script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+    <script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+    <!-- 兼容ie9及以下json -->
+	<script src="../../js/json2.js"></script>
+	<!-- 表格js -->
+	<script src="../../js/plugins/bootstraptable/bootstrap-table.min.js"></script>
+	<script src="../../js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+	<script type="text/javascript">
+
+		//表格
+		var table = $('#tableLog');;
+	
+		$(function() {
+			//表格初始化
+			tableInit();
+		});
+		function tableInit() {
+			table.bootstrapTable({
+				url : '../../SchoolFoodOptionsServlet',//远程请求地址
+				method : 'post',//请求方式
+				dataType : 'json',//接收数据类型
+				contentType: "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+				striped : true, //是否显示行间隔色
+				toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+				cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+				sortable : false, //是否启用排序
+				pagination : true, //是否显示分页（*）
+				pageNumber : 1, //初始化加载第一页，默认第一页
+				pageSize : 10, //每页的记录行数（*）
+				pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+				sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+				clickToSelect : true, //是否启用点击选中行
+				uniqueId : 'ID', //每一行的标识（要具有唯一性）
+				//queryParams : queryParams,//请求参数        (有搜索条件的时候才使用)
+				columns : [
+					//field对应返回数据中的字段
+					{
+						field : 'DEFTYPE',
+						title : '选项编号',
+					},
+					{
+						field : 'DEFNAME',
+						title : '选项名称',
+					},
+					{
+						field : 'SEQ',
+						title : '排序，整型',
+					},
+					{
+						title : '操作',
+						align:'center',
+						width:'10%',
+						valign:'center',
+						formatter : function(value, row, index) {
+							var foodsId = row.ID;
+							//编辑html拼接标签
+							var edit = '<a type="button" title="编辑" class="btn btn-primary shiny btn-xs purple"'
+								+'data-toggle="modal" data-id="'+foodsId+'" data-target="#editModal">'
+								+'<i class="fa fa-edit"></i> 编辑</a>';
+							//删除html拼接标签
+							var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple"'
+								+'data-toggle="modal" data-id="'+foodsId+'" data-target="#deleteModal">'
+								+'<i class="fa fa-trash-o"></i> 删除</a>';
+							//添加拼接标签以join中的字符串分隔开来
+							return [edit,del].join(' ');
+						}
+					}
+				],
+				onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+					$(".info").removeClass("info");
+					$(ele).addClass("info");
+				}
+			});
+		};
+		//新增对话框监听
+		$('#addModal').on('show.bs.modal',function (e){
+			//重置表单
+			$('#addForm')[0].reset();
+		});
+		//新增保存数据事件
+		function addSaveData() {
+			//使用post的简单用法 
+			//4个参数的 方法 
+			//第一个 接口地址
+			//第二个 请求参数字符串 （两种类型）<参数名=参数值&参数名=参数值> 或者< {'参数名':参数值,'参数名':参数值} >
+			//第三个 接口连接成功回调 data-->成功返回的结果{result:ok}或者{result:failure}判断实际结果
+			//第四个 返回数据的类型  json（json类型）也就是请求接口必须返回的是json格式的字符串
+			var $form = $('#addForm');
+			//第一种传参的例子
+			$.post('../../AddFoodsServlet',$form.serialize(),function(data){
+				if(data.result=='ok'){
+					//请求成功（这里是添加数据成功）提示且刷新数据
+					table.bootstrapTable('refresh');//刷新表格
+				}else{
+					//失败
+					alert('新增失败！请稍后再试');
+				}
+			},'json');
+			$('#addModal').modal('hide');
+		}
+		//编辑对话框打开监听
+		$('#editModal').on('show.bs.modal',function (e){
+			var button = $(e.relatedTarget); // 触发该对话框的按钮
+			var id = button.data('id');//获取传递的id
+			//根据id获取该行的数据-->获取UniqueId标识的行数据
+			var row = table.bootstrapTable('getRowByUniqueId', id);
+			//根据类 填充详细对话框中input 内容 
+			$(".food-deftype").val(row.DEFTYPE);//食谱编号
+			$(".food-defname").val(row.DEFNAME);//食谱名称
+			$(".food-seq").val(row.SEQ);//排序，整型
+			//编辑确定按钮
+			var btnEditOk = $('#btnEditOk');
+			//先移除点击事件
+			btnEditOk.removeAttr("onclick");
+			//添加点击事件
+			btnEditOk.attr('onclick', 'editSubmit("' + id + '")');
+		});
+		//编辑确定点击事件
+		function editSubmit(id) {
+			//根据id获取该行的数据-->获取UniqueId标识的行数据
+			var row = table.bootstrapTable('getRowByUniqueId', id);
+			//'{"ID":23,"SID":1,"DEFTYPE":"1","DEFNAME":"晚餐","SEQ":1}'
+			//获取UniqueId标识的行数据
+			var defType = $('#editType').val();
+			var defName = $('#editName').val();
+			var seq     = $('#editSeq').val();
+			//修改标题和内容的值
+			row.DEFTYPE = defType;
+			row.DEFNAME = defName;
+			row.SEQ =seq;
+			//post请求修改
+			$.post('../../UpdateFoodsServlet',{"defType" : JSON.stringify(row)},function(data){
+				if(data.result=='ok'){
+					//成功						
+					table.bootstrapTable('refresh'); //刷新表格
+				}else{
+					//失败
+				}
+			},'json');
+			$('#editModal').modal('hide');
+		}
+		//删除对话框打开监听
+		$('#deleteModal').on('show.bs.modal',function (e){
+			var button = $(e.relatedTarget); // 触发该对话框的按钮
+			var id = button.data('id');//获取传递的id
+			//为删除按钮设置点击事件
+			var btnDel = $('#btnDel');
+			btnDel.removeAttr("onclick");//先移除，再添加
+			btnDel.attr('onclick', 'deleteData("' + id + '")');
+		});
+		//删除数据事件
+		function deleteData(id) {
+			//post请求删除 第二种传参的例子
+			$.post('../../DeleteFoodsServlet',{'foodId':id},function(data){
+				if(data.result=='ok'){
+					//请求成功（这里是删除数据成功）提示且刷新数据
+					table.bootstrapTable('refresh');//刷新表格
+				}else{
+					//失败
+					alert('删除失败！请稍后再试');
+				}
+			},'json');
+			$('#deleteModal').modal('hide');
+		}
+	</script>
+</body>
+</html>

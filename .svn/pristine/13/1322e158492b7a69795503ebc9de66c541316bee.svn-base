@@ -1,0 +1,149 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<% String basePath = request.getContextPath(); %>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>区域管理</title>
+<link rel="shortcut icon" href="<%=basePath%>/icons/favicon.ico"> 
+<link href="<%=basePath%>/css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="<%=basePath%>/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="<%=basePath%>/css/animate.css" rel="stylesheet">
+<link href="<%=basePath%>/css/style.css?v=4.1.0" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/toastr/toastr.min.css" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/bootstrap-treeview/bootstrap-treeview.css" rel="stylesheet">
+<link href="<%=basePath%>/css/plugins/bootstrapvalidator/bootstrapValidator.min.css" rel="stylesheet">
+
+<style type="text/css">
+ .treeview .list-group-item{
+ 	cursor:pointer
+ }
+ .treeview span.indent{
+ 	margin-left:10px;margin-right:10px
+ }
+ .treeview span.icon{
+    width:12px;margin-right:5px
+}
+.treeview .node-disabled{
+	color:silver;cursor:not-allowed
+}
+.node-treeview5{color:#428bca;} /* 节点选中颜色 */
+.node-treeview5:not(.node-disabled):hover{background-color:#F5F5F5;} 
+
+</style>
+</head>
+<body class="gray-bg">
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <!-- Panel Other -->
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+				<h3>区域管理</h3>
+			</div> 
+			<!-- ibox 内容面板 -->
+			<div class="ibox-content areabox-content">
+				<div class="row">
+					<!-- 左边区域树结构 -->
+					<div class="col-sm-3 b-r">
+						<div id="treeview" class="treeview">
+							<ul class="list-group">
+								
+							</ul>
+						</div>
+					</div>
+					<div class="col-sm-9">
+						<!-- 头部 -->
+						<div class="box-header with-border">
+							<div class="btn-group">
+		                        <button type="button" class="btn btn-default" data-btn-type="addRoot" onclick="addRootNode()">
+		                            <li class="fa fa-plus">&nbsp;新增根区域</li>
+		                        </button>
+		                        <button type="button" class="btn btn-default" data-btn-type="add" onclick="addChilNode()">
+		                            <li class="fa fa-plus">&nbsp;新增下级区域</li>
+		                        </button>
+		                        <button type="button" class="btn btn-default" data-btn-type="edit" onclick="editNode()">
+		                            <li class="fa fa-edit">&nbsp;编辑当前区域</li>
+		                        </button>
+		                        <button type="button" class="btn btn-default" data-btn-type="delete" onclick="deleteNode()">
+		                            <li class="fa fa-remove">&nbsp;删除当前区域</li>
+		                        </button>
+		                    </div>
+						</div>
+						<!-- <div class="col-xs-offset-1"> -->
+						<form class="form-horizontal" id="areaFormId" style="margin-top: 3%;">
+							<div class="col-md-6">
+								<div class="form-group">
+									<label class="control-label col-sm-4">上级区域：</label>
+									<div class="col-sm-6">
+										<input type="text" id="parentcodeId" name="parentcode" class="form-control">
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-sm-4">区域编码：</label>
+									<div class="col-sm-6">
+										<input type="text" id="areacodeId" name="areacode" class="form-control">
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="control-label col-sm-4">区域名称：</label>
+									<div class="col-sm-6">
+										<input type="text" id="areanameId" name="areaname" class="form-control">
+									</div>
+								</div>
+								
+								<div class="form-group" style="margin-left: 40%;">
+									<button type="button" class="btn btn-primary" onclick="saveBtn()">保存</button>
+									<button type="button" class="btn btn-primary" onclick="cancelBtn()">取消</button>
+								</div>
+							</div>
+						</form> 
+						<!-- </div> -->
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- table 删除modal -->
+    <div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+        aria-labelledby="delModalLabel" data-backdrop="true"
+        aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <h5 class="modal-title" id="delModalLabel" style="color: red">删除
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+                </div>
+                <div class="modal-footer">
+                   <!--  <span id='deleteButton'></span> -->
+                    <button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal" onclick="affirmDeleteNode()">确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+
+            </div>
+        </div>
+    </div><!-- end deleteModal -->
+
+
+<!-- 全局js -->
+<script src="<%=basePath%>/js/jquery-3.2.1.min.js?v=3.2.1"></script>
+<script src="<%=basePath%>/js/bootstrap.min.js?v=3.3.7"></script>
+<!-- 兼容ie9及以下JSON -->
+<script src="<%=basePath%>/js/json2.js"></script>
+<!-- toastr 提示信息工具 -->
+<script src="<%=basePath%>/js/plugins/toastr/toastr.min.js"></script>
+<!-- util -->
+<script src="<%=basePath%>/js/common/util.js"></script>
+<script src="<%=basePath%>/js/plugins/bootstrap-treeview/bootstrap-treeview.js"></script>
+<script src="<%=basePath%>/js/plugins/bootstrapvalidator/bootstrapValidator.min.js?v=0.5.3"></script>
+<script src="area.js"></script>
+</body>
+</html>

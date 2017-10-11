@@ -1,0 +1,325 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!-- Tell the browser to be responsive to screen width -->
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<title>学校审核</title>
+<link rel="shortcut icon" href="../icons/favicon.ico"> 
+<link href="../../css/bootstrap.min.css?v=3.3.7" rel="stylesheet">
+<link href="../../css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+<link href="../../css/animate.css" rel="stylesheet">
+<link href="../../css/style.css?v=4.1.0" rel="stylesheet">
+<link href="../../css/plugins/bootstraptable/bootstrap-table.css" rel="stylesheet">
+</head>
+
+<body class="gray-bg">
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <!-- Panel Other -->
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">	
+				<h4>学校审核</h4>
+			</div>
+			<div class="ibox-content">
+				<div class="example-box" role="form">
+					<div class="row form-inline">
+						<div class="form-group col-xs-11">
+							<div class="col-xs-4">
+								<label for="q_school" class="form-label">学校名称：</label>
+								<input id="q_school" name="q_school" type="text" class="form-control">
+							</div>
+							<div class="col-xs-4">
+								<label for="q_address" class="form-label">学校地址：</label>
+								<input id="q_address" name="q_address" type="text" class="form-control">
+							</div>
+							<div class="col-xs-4">
+								<label class="control-label" for="q_checkstate">审核状态:</label>
+								<select id="q_checkstate" name='q_checkstate' class="form-control"
+									style="font-size: 12px; width: 40%;">
+									<option value="" selected="selected">全部</option>
+									<option value="1">启用</option>
+									<option value="0">禁用</option>
+								</select>
+							</div>
+						</div>
+						<div class="form-group col-xs-1">
+							<div class="col-sm-1">
+								<a id="btnSearch" type="button" class="btn btn-sm btn-primary"
+								onclick="queryData()">搜索</a>
+							</div>
+						</div>
+					</div>
+            	</div>
+				<div  id="toolbar">
+					
+				</div> 
+				<!-- table 内容 -->
+				<table id="tableSchoolAppl" style="margin: 0px;">
+				
+				</table>
+			</div>
+		</div>
+	</div>
+	
+	<!-- table 审核 modal -->
+    <div class="modal fade" id="checkModal" tabindex="-1" role="dialog"
+        aria-lablledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document" style="width: 20%">
+            <!-- 会话窗口 -->
+            <div class="modal-content">
+                <!-- 模态框内容 -->
+                <div class="modal-header">
+                    <!-- 模态框头 -->
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <!-- 右上角关闭按钮“x” -->
+                    <h5 class="modal-title" id="addModalTitle">学校审核</h5>
+                </div>
+                <div class="modal-body">
+					<!-- 模态框主题内容 -->
+                    <p class="glyphicon glyphicon-question-sign">&nbsp;是否确认通过该记录？</p>
+				</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="btnSave">通过</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">不通过</button>
+                </div>
+            </div>
+        </div>
+    </div><!-- end addModal -->
+    
+    <!-- table 删除modal -->
+    <div id="deleteModal" class="modal fade" role='dialog' tabindex="-1"
+        aria-labelledby="delModalLabel" data-backdrop="true"
+        aria-hidden="true">
+        <div class="modal-dialog" style="width: 20%">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                    <h5 class="modal-title" id="delModalLabel" style="color: red">删除
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p class="glyphicon glyphicon-question-sign">&nbsp;是否确认删除？</p>
+                </div>
+                <div class="modal-footer">
+                   <!--  <span id='deleteButton'></span> -->
+                    <button id="btnDel" type="button" class="btn btn-delete" data-dismiss="modal">确定</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                </div>
+
+            </div>
+        </div>
+    </div><!-- end deleteModal -->
+
+<!-- 全局js -->
+<script src="../../js/jquery-3.2.1.min.js?v=3.2.1"></script>
+<script src="../../js/bootstrap.min.js?v=3.3.7"></script>
+<!-- 兼容ie9及以下 -->
+<script src="../../js/json2.js"></script>
+<script src="../../js/plugins/bootstraptable/bootstrap-table.js"></script>
+<script src="../../js/plugins/bootstraptable/locale/bootstrap-table-zh-CN.js"></script>
+
+<!-- js代码 -->
+<script type="text/javascript">
+var table = $('#tableSchoolAppl');
+
+//初始化table
+$(function() {
+	//初始化table
+	tableInit();
+});
+
+function tableInit(){
+	table.bootstrapTable({
+		url : '../../schoolApplInitServlet',//远程请求地址
+		method : 'post',//请求方式
+		dataType : 'json',//接收数据类型
+		contentType: "application/x-www-form-urlencoded",//请求数据类型('post'必须设置)
+		striped : true, //是否显示行间隔色
+		toolbar : "#toolbar", //一个jQuery 选择器，指明自定义的toolbar 例如:#toolbar, .toolbar.
+		cache : false, //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+		sortable : false, //是否启用排序
+		pagination : true, //是否显示分页（*）
+		pageNumber : 1, //初始化加载第一页，默认第一页
+		pageSize : 10, //每页的记录行数（*）
+		pageList : [ 10, 25, 50 ], //可供选择的每页的行数（*）
+		sidePagination : "server", //分页方式：client客户端分页，server服务端分页（*）
+		clickToSelect : true, //是否启用点击选中行
+		uniqueId : 'SID', //每一行的标识（要具有唯一性）
+		queryParams: queryParams,
+		columns : [
+				//field对应返回数据中的字段
+				{
+					field : 'SID',
+					title : '学校ID '
+				},
+				{
+					field : 'DOMAINNAME',
+					title : '区域 '
+				},
+				{
+					field : 'SNAME',
+					title : '学校名称'
+				},
+				{
+					field : 'SADDRESS',
+					title : '学校地址'
+				},
+				{
+					field : 'LINKNAME',
+					title : '联系人'
+				},
+				{
+					field : 'MOBILE',
+					title : '联系电话'
+				},
+				{
+					field : 'HANDLESTATE',
+					title : '审核状态',
+					formatter: function(value, row, index){
+						if(value == 0) return "未审核";
+						if(value == 1) return "已审核";
+ 					} 
+				},
+				{
+					field : 'CTIME',
+					title : '创建时间',
+					formatter : function(value, row,
+							index) {
+						var time = value.replace('T',' ');
+						return time;
+					}
+				},
+				{
+					field : 'REMARK',
+					title : '备注',
+					formatter : function(value, row,
+							index) {
+						if(value == null) 
+							return "";
+					}
+				},
+				{
+					title : '操作',
+					align : 'center', width:'13%',
+					formatter : function(value, row, index) {
+						//获取当前row内容
+						var id = row.SID;
+						
+						var check = '<a type="button" title="审核" class="btn btn-primary shiny btn-xs purple" data-id="'+id+'" data-toggle="modal" data-target="#checkModal"><i class="fa fa-check-circle-o"></i>审核</a>&nbsp;&nbsp';
+						var del = '<a type="button" title="删除" class="btn btn-danger shiny btn-xs purple" onclick="confirmDeleteModal('
+								+ id
+								+ ')" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash-o"></i>删除</a>';
+							return [check,,del].join('');
+					}
+				} 
+				], 
+		onClickRow : function(row, ele, fileid) {//table选中行设置背景色
+			$(".info").removeClass("info");
+			$(ele).addClass("info");
+		}
+	});
+};
+
+$(function(){ //隐藏‘备注列’
+	$('#tableSchoolAppl').bootstrapTable('hideColumn', 'SID');
+});
+
+var searchData = {optFlag: 'init'};
+
+function queryParams(params){
+	params.optFlag = searchData.optFlag;
+	params.q_school = searchData.q_school;
+	params.q_address = searchData.q_address;
+	params.q_checkstate = searchData.q_checkstate;
+	return params;
+};
+
+function queryData(){
+	searchData.q_school = $('#q_school').val();
+	searchData.q_address = $('#q_address').val();
+	searchData.q_checkstate = $('#q_checkstate').val();
+	table.bootstrapTable('destroy');
+	//重新创建表格 用于重新加载数据
+	tableInit();
+};
+
+//modal窗口打开的时候执行:新增/修改
+$('#checkModal').on('show.bs.modal', function(event) {
+	var button = $(event.relatedTarget); // 触发事件的按钮 
+	var flag = button.data('flag'); // 获取按钮点击事件传给modal的 data参数标识
+	var btnSave = $('#btnSave');
+	
+	 //修改
+		var sId = button.data('id');
+	 	console.info(sId);
+		var modal = $(this); //获取当前的modal\
+		
+		//获取UniqueId标识的行数据
+		var row = table.bootstrapTable('getRowByUniqueId', sId);
+		$('#domainName').val(row.DOMAINNAME);
+		$('#schoolName').val(row.SNAME);
+		$('#schoolAddress').val(row.SADDRESS);
+		$('#linkName').val(row.LINKNAME);
+		$('#mobile').val(row.MOBILE);
+		$('#remarkId').val(row.REMARK);
+		
+		//添加保存按钮事件
+		btnSave.removeAttr("onclick");
+		btnSave.attr('onclick', 'checkSchool('+sId+')');
+});
+
+function checkSchool(sId){ //审核是否通过
+ 	var $form = $('#checkForm');
+	$.ajax({
+		url: '../../schoolApplInitServlet',
+// 		data: $form.serialize()+"&optFlag=check"+ "&SID="+sId,
+		data: "&optFlag=check"+ "&SID="+sId,
+		success : function(data) {
+			var json = JSON.parse(data); // 转为json格式
+			var result = json.result;
+			if(result=="ok"){ //如果返回结果为 fail 则删除失败
+				alert("操作成功!");
+			}else{
+				alert("操作失败!");
+			}
+			table.bootstrapTable('refresh');
+		}
+	});
+	$('#checkModal').modal('hide');
+};
+
+/*table 删除按钮*/
+function confirmDeleteModal(sId) {
+	var btnDel = $('#btnDel');
+	btnDel.removeAttr("onclick");
+	btnDel.attr('onclick', 'deleteData(' + sId + ')');
+};
+
+/*modal 确认删除按钮*/
+function deleteData(id) {
+	$.ajax({
+		url : "../../schoolApplInitServlet",
+		data : {
+			"sId" : id,  //学校ID
+			"optFlag": "delete"
+		},
+		success : function(data) {
+			var json = JSON.parse(data); // 转为json格式
+			var result = json.result;
+			if(result=="fail"){ //如果返回结果为 fail 则删除失败
+				alert("操作失败！");
+			}else{
+				alert("操作成功！");
+			}
+			table.bootstrapTable('refresh'); //刷新表格
+		}
+	});
+};
+</script>
+</body>
+</html>
